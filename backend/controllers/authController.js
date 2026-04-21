@@ -85,7 +85,18 @@ exports.login = async (req, res) => {
 
   const user = await User.findOne({ email });
 
-  if (user && (await bcrypt.compare(password, user.password))) {
+  if (!user) {
+    return res.status(401).json({ message: "Invalid credentials" });
+  }
+
+  // 🔥 BLOCK UNVERIFIED USERS
+  if (!user.isVerified) {
+    return res.status(401).json({
+      message: "Please verify your email first",
+    });
+  }
+
+  if (await bcrypt.compare(password, user.password)) {
     const token = generateToken(user._id);
 
     res.cookie("token", token, {

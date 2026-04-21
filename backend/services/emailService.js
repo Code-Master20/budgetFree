@@ -6,7 +6,7 @@ exports.sendEmail = async (to, subject, html) => {
 
     const response = await resend.emails.send({
       from: "YourApp <onboarding@resend.dev>", // 👈 IMPORTANT CHANGE
-      to: ["delivered@resend.dev"], // 👈 TEMP TEST EMAIL
+      to: [to], // 👈 TEMP TEST EMAIL
       subject,
       html,
     });

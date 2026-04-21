@@ -39,7 +39,7 @@ exports.register = async (req, res) => {
     });
 
     // 🔥 Send verification email
-    const verifyLink = `http://localhost:8000/api/auth/verify/${verificationToken}`;
+    const verifyLink = `${process.env.BASE_URL}/api/auth/verify/${verificationToken}`;
 
     await sendEmail(
       user.email,

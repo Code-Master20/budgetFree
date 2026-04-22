@@ -22,7 +22,10 @@ app.use(cookieParser());
 
 app.use(
   cors({
-    origin: true, // ✅ allow all temporarily
+    origin: [
+      "http://localhost:5173",
+      "https://budgetfree.vercel.app", // 🔥 YOUR LIVE FRONTEND
+    ],
     credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization"],

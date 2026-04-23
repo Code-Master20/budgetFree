@@ -1,18 +1,19 @@
-const resend = require("../config/resend");
+const { getResendClient } = require("../config/resend");
 
 exports.sendEmail = async (to, subject, html) => {
   try {
-    console.log("📧 Sending email to:", to);
+    const resend = getResendClient();
 
     const response = await resend.emails.send({
-      from: "YourApp <onboarding@resend.dev>", // 👈 IMPORTANT CHANGE
-      to: [to], // 👈 TEMP TEST EMAIL
+      from: "YourApp <onboarding@resend.dev>",
+      to: [to],
       subject,
       html,
     });
 
-    console.log("✅ Email response:", response);
+    console.log("Email response:", response);
   } catch (error) {
-    console.log("❌ Email failed:", error);
+    console.log("Email failed:", error);
+    throw error;
   }
 };

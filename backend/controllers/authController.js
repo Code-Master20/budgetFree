@@ -4,19 +4,23 @@ const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
 const { sendEmail } = require("../services/emailService");
 
-// 🔐 Generate JWT
+const isProduction = process.env.NODE_ENV === "production";
+const cookieOptions = {
+  httpOnly: true,
+  secure: isProduction,
+  sameSite: "lax",
+};
+
 const generateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, {
     expiresIn: "7d",
   });
 };
 
-// ================= REGISTER =================
 exports.register = async (req, res) => {
   try {
     const { name, email, password } = req.body;
 
-    // check existing user
     const userExists = await User.findOne({ email });
     if (userExists) {
       return res.status(400).json({
@@ -24,10 +28,7 @@ exports.register = async (req, res) => {
       });
     }
 
-    // hash password
     const hashedPassword = await bcrypt.hash(password, 10);
-
-    // create verification token
     const verificationToken = crypto.randomBytes(32).toString("hex");
 
     const user = await User.create({
@@ -37,10 +38,9 @@ exports.register = async (req, res) => {
       verificationToken,
     });
 
-    // verification link
-    const verifyLink = `${process.env.BASE_URL}/api/auth/verify/${verificationToken}`;
+    const baseUrl = process.env.BASE_URL || "http://localhost:5000";
+    const verifyLink = `${baseUrl}/api/auth/verify/${verificationToken}`;
 
-    // send email
     await sendEmail(
       user.email,
       "Verify Your Email",
@@ -50,14 +50,13 @@ exports.register = async (req, res) => {
 
     res.json({
       message: "Registered successfully. Please verify your email.",
-      verifyLink, // for testing
+      verifyLink,
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
 
-// ================= VERIFY EMAIL =================
 exports.verifyEmail = async (req, res) => {
   try {
     const user = await User.findOne({
@@ -73,13 +72,12 @@ exports.verifyEmail = async (req, res) => {
 
     await user.save();
 
-    res.send("✅ Email verified successfully");
+    res.send("Email verified successfully");
   } catch (error) {
     res.status(500).send("Verification failed");
   }
 };
 
-// ================= LOGIN =================
 exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -90,7 +88,6 @@ exports.login = async (req, res) => {
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
-    // 🚫 block unverified users
     if (!user.isVerified) {
       return res.status(401).json({
         message: "Please verify your email first",
@@ -105,12 +102,7 @@ exports.login = async (req, res) => {
 
     const token = generateToken(user._id);
 
-    // 🍪 COOKIE (PRODUCTION READY)
-    res.cookie("token", token, {
-      httpOnly: true,
-      secure: true, // 🔥 must be true for Render (HTTPS)
-      sameSite: "None", // 🔥 required for frontend-backend
-    });
+    res.cookie("token", token, cookieOptions);
 
     res.json({
       _id: user._id,
@@ -124,7 +116,6 @@ exports.login = async (req, res) => {
   }
 };
 
-// ================= GET CURRENT USER (/me) =================
 exports.getMe = async (req, res) => {
   try {
     res.json(req.user);
@@ -133,13 +124,8 @@ exports.getMe = async (req, res) => {
   }
 };
 
-// ================= LOGOUT =================
 exports.logout = (req, res) => {
-  res.clearCookie("token", {
-    httpOnly: true,
-    secure: true,
-    sameSite: "None",
-  });
+  res.clearCookie("token", cookieOptions);
 
   res.json({ message: "Logged out" });
 };

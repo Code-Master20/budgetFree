@@ -1,1 +1,314 @@
+@import url("https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@400;500;600;700;800&display=swap");
 @import "tailwindcss";
+
+:root {
+  color-scheme: light;
+  --app-ink: #1e2930;
+  --app-muted: #5b6b70;
+  --app-surface: rgba(255, 252, 246, 0.76);
+  --app-surface-strong: rgba(255, 255, 255, 0.9);
+  --app-border: rgba(117, 140, 128, 0.16);
+  --app-shadow: 0 28px 60px rgba(29, 58, 57, 0.12);
+  --app-primary: #146356;
+  --app-primary-strong: #0f4d43;
+  --app-track: rgba(255, 255, 255, 0.4);
+  --app-thumb: rgba(20, 99, 86, 0.28);
+  --app-white-soft: rgba(255, 255, 255, 0.7);
+  --app-white-strong: rgba(255, 255, 255, 0.75);
+  --app-meta-chip: rgba(255, 255, 255, 0.7);
+  --app-theme-switcher: rgba(255, 255, 255, 0.55);
+  --app-theme-chip: transparent;
+  --app-theme-chip-active: rgba(20, 99, 86, 0.92);
+  --app-theme-chip-color: #5b6b70;
+  --app-theme-chip-active-color: #ffffff;
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --app-ink: #edf4f5;
+  --app-muted: #aab7bf;
+  --app-surface: rgba(16, 24, 31, 0.72);
+  --app-surface-strong: rgba(24, 35, 44, 0.88);
+  --app-border: rgba(145, 170, 181, 0.18);
+  --app-shadow: 0 28px 60px rgba(0, 0, 0, 0.34);
+  --app-primary: #47b6a4;
+  --app-primary-strong: #2c8f84;
+  --app-track: rgba(17, 25, 33, 0.8);
+  --app-thumb: rgba(92, 210, 190, 0.42);
+  --app-white-soft: rgba(255, 255, 255, 0.08);
+  --app-white-strong: rgba(255, 255, 255, 0.1);
+  --app-meta-chip: rgba(255, 255, 255, 0.08);
+  --app-theme-switcher: rgba(255, 255, 255, 0.06);
+  --app-theme-chip: transparent;
+  --app-theme-chip-active: rgba(71, 182, 164, 0.92);
+  --app-theme-chip-color: #c7d3d8;
+  --app-theme-chip-active-color: #0f1418;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  color: var(--app-ink);
+  font-family: "Manrope", sans-serif;
+  background:
+    radial-gradient(circle at top left, rgba(240, 179, 118, 0.25), transparent 34%),
+    radial-gradient(circle at top right, rgba(65, 151, 144, 0.2), transparent 26%),
+    linear-gradient(180deg, #fffdf7 0%, #f3f4ed 100%);
+  background-attachment: fixed;
+  transition:
+    background 220ms ease,
+    color 220ms ease;
+}
+
+:root[data-theme="dark"] body {
+  background:
+    radial-gradient(circle at top left, rgba(59, 130, 246, 0.14), transparent 30%),
+    radial-gradient(circle at top right, rgba(71, 182, 164, 0.12), transparent 24%),
+    linear-gradient(180deg, #071116 0%, #0c171d 55%, #121f27 100%);
+}
+
+#root {
+  min-height: 100vh;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: "Sora", sans-serif;
+  letter-spacing: -0.03em;
+}
+
+button,
+a {
+  transition:
+    transform 180ms ease,
+    box-shadow 180ms ease,
+    background-color 180ms ease,
+    border-color 180ms ease,
+    color 180ms ease,
+    opacity 180ms ease;
+}
+
+::selection {
+  background: rgba(20, 99, 86, 0.18);
+}
+
+::-webkit-scrollbar {
+  width: 11px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--app-track);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--app-thumb);
+  border-radius: 999px;
+  border: 2px solid rgba(255, 255, 255, 0.18);
+}
+
+@layer components {
+  .page-wrap {
+    @apply relative min-h-screen overflow-hidden px-4 py-6 sm:px-6 lg:px-8;
+  }
+
+  .page-wrap::before,
+  .page-wrap::after {
+    content: "";
+    position: absolute;
+    border-radius: 9999px;
+    filter: blur(10px);
+    opacity: 0.65;
+    pointer-events: none;
+  }
+
+  .page-wrap::before {
+    width: 18rem;
+    height: 18rem;
+    top: 2rem;
+    right: -5rem;
+    background: radial-gradient(circle, rgba(239, 155, 78, 0.2), transparent 70%);
+  }
+
+  .page-wrap::after {
+    width: 20rem;
+    height: 20rem;
+    left: -6rem;
+    bottom: 2rem;
+    background: radial-gradient(circle, rgba(20, 99, 86, 0.16), transparent 70%);
+  }
+
+  .app-shell {
+    @apply relative mx-auto w-full max-w-7xl;
+  }
+
+  .glass-panel {
+    background: var(--app-surface);
+    border: 1px solid var(--app-border);
+    box-shadow: var(--app-shadow);
+    backdrop-filter: blur(18px);
+  }
+
+  .glass-panel-strong {
+    background: var(--app-surface-strong);
+    border: 1px solid var(--app-white-strong);
+    box-shadow: var(--app-shadow);
+    backdrop-filter: blur(20px);
+  }
+
+  .eyebrow {
+    @apply inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.28em];
+    background: rgba(20, 99, 86, 0.1);
+    color: var(--app-primary);
+  }
+
+  .section-title {
+    @apply text-3xl font-semibold sm:text-4xl;
+  }
+
+  .section-copy {
+    @apply text-sm leading-7 sm:text-base;
+    color: var(--app-muted);
+  }
+
+  .primary-button {
+    @apply inline-flex items-center justify-center rounded-full px-5 py-3 text-sm font-semibold text-white;
+    background: linear-gradient(135deg, var(--app-primary), var(--app-primary-strong));
+    box-shadow: 0 14px 28px rgba(20, 99, 86, 0.2);
+  }
+
+  .primary-button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 18px 34px rgba(20, 99, 86, 0.24);
+  }
+
+  .secondary-button {
+    @apply inline-flex items-center justify-center rounded-full px-5 py-3 text-sm font-semibold;
+    background: var(--app-white-soft);
+    border: 1px solid rgba(117, 140, 128, 0.2);
+    color: var(--app-ink);
+  }
+
+  .secondary-button:hover {
+    transform: translateY(-1px);
+    background: var(--app-surface-strong);
+  }
+
+  .pill {
+    @apply inline-flex items-center rounded-full px-3 py-1 text-xs font-medium;
+    background: rgba(20, 99, 86, 0.08);
+    color: var(--app-primary);
+  }
+
+  .field {
+    @apply w-full rounded-2xl border px-4 py-3 text-sm outline-none;
+    border-color: rgba(117, 140, 128, 0.2);
+    background: rgba(255, 255, 255, 0.88);
+    transition:
+      border-color 180ms ease,
+      box-shadow 180ms ease,
+      background-color 180ms ease;
+  }
+
+  .field:focus {
+    border-color: rgba(20, 99, 86, 0.45);
+    box-shadow: 0 0 0 4px rgba(20, 99, 86, 0.12);
+    background: rgba(255, 255, 255, 1);
+  }
+
+  .soft-divider {
+    height: 1px;
+    background: linear-gradient(
+      90deg,
+      rgba(20, 99, 86, 0),
+      rgba(20, 99, 86, 0.18),
+      rgba(20, 99, 86, 0)
+    );
+  }
+
+  .theme-switcher {
+    background: var(--app-theme-switcher);
+    border: 1px solid var(--app-border);
+  }
+
+  .theme-chip {
+    background: var(--app-theme-chip);
+    color: var(--app-theme-chip-color);
+  }
+
+  .theme-chip-active {
+    background: var(--app-theme-chip-active);
+    color: var(--app-theme-chip-active-color);
+    box-shadow: 0 10px 24px rgba(20, 99, 86, 0.18);
+  }
+
+  .theme-meta-chip {
+    background: var(--app-meta-chip);
+    color: var(--app-muted);
+  }
+}
+
+@layer utilities {
+  :root[data-theme="dark"] .text-slate-900 {
+    color: #edf4f5 !important;
+  }
+
+  :root[data-theme="dark"] .text-slate-600 {
+    color: #aab7bf !important;
+  }
+
+  :root[data-theme="dark"] .text-slate-500 {
+    color: #8fa2ab !important;
+  }
+
+  :root[data-theme="dark"] .text-amber-600 {
+    color: #ffc76b !important;
+  }
+
+  :root[data-theme="dark"] .text-emerald-700 {
+    color: #63d3c1 !important;
+  }
+
+  :root[data-theme="dark"] .bg-white\/55,
+  :root[data-theme="dark"] .bg-white\/70,
+  :root[data-theme="dark"] .bg-white\/72,
+  :root[data-theme="dark"] .bg-white\/75 {
+    background-color: rgba(255, 255, 255, 0.08) !important;
+  }
+
+  :root[data-theme="dark"] .bg-emerald-50 {
+    background-color: rgba(52, 211, 153, 0.12) !important;
+  }
+
+  :root[data-theme="dark"] .bg-rose-50 {
+    background-color: rgba(244, 63, 94, 0.12) !important;
+  }
+
+  :root[data-theme="dark"] .border-emerald-200,
+  :root[data-theme="dark"] .border-rose-200,
+  :root[data-theme="dark"] .border-slate-200\/70 {
+    border-color: rgba(148, 163, 184, 0.22) !important;
+  }
+
+  :root[data-theme="dark"] .bg-slate-200\/70,
+  :root[data-theme="dark"] .bg-slate-200\/80,
+  :root[data-theme="dark"] .bg-slate-200\/60 {
+    background-color: rgba(148, 163, 184, 0.14) !important;
+  }
+
+  :root[data-theme="dark"] .bg-gradient-to-br.from-emerald-100.via-amber-50.to-orange-100 {
+    background-image: linear-gradient(
+      to bottom right,
+      rgba(20, 99, 86, 0.35),
+      rgba(245, 158, 11, 0.14),
+      rgba(59, 130, 246, 0.22)
+    ) !important;
+  }
+}

@@ -1,8 +1,10 @@
+import { motion as Motion } from "framer-motion";
 import { useState } from "react";
-import { motion } from "framer-motion";
 import { useDispatch, useSelector } from "react-redux";
+import { Link, useNavigate } from "react-router-dom";
+import PageTransition from "../components/PageTransition";
+import SiteChrome from "../components/SiteChrome";
 import { loginUser } from "../redux/authSlice";
-import { useNavigate } from "react-router-dom";
 
 export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
@@ -13,68 +15,135 @@ export default function Login() {
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { error } = useSelector((state) => state.auth);
+  const { error, loading } = useSelector((state) => state.auth);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmit = async (event) => {
+    event.preventDefault();
 
     const result = await dispatch(loginUser(form));
 
     if (result.meta.requestStatus === "fulfilled") {
       navigate("/dashboard");
-
       setForm({
         email: "",
         password: "",
       });
-    } else {
-      alert(result.payload || "Login failed");
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-500 to-blue-600">
-      <motion.form
-        onSubmit={handleSubmit}
-        className="bg-white p-8 rounded-2xl shadow-xl w-80"
-      >
-        <h2 className="text-2xl font-bold text-center mb-6">Login 🔐</h2>
-
-        <input
-          value={form.email}
-          placeholder="Email"
-          className="w-full p-2 mb-3 border rounded"
-          onChange={(e) => setForm({ ...form, email: e.target.value })}
-        />
-
-        <div className="relative mb-4">
-          <input
-            value={form.password}
-            type={showPassword ? "text" : "password"}
-            placeholder="Password"
-            className="w-full p-2 border rounded pr-10"
-            onChange={(e) => setForm({ ...form, password: e.target.value })}
-          />
-          <span
-            onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-3 top-2 cursor-pointer"
+    <PageTransition className="page-wrap">
+      <SiteChrome>
+        <div className="app-shell grid min-h-[72vh] items-center gap-6 lg:grid-cols-[1.05fr_0.95fr]">
+          <Motion.section
+            initial={{ opacity: 0, x: -28 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.38 }}
+            className="glass-panel hidden rounded-[36px] p-8 lg:block"
           >
-            👁️
-          </span>
+            <span className="eyebrow">Welcome back</span>
+            <h1 className="mt-6 text-4xl font-semibold">
+              Pick up where you left off without the usual friction.
+            </h1>
+            <p className="section-copy mt-5 max-w-xl">
+              We smoothed the sign-in flow, softened the visuals, and kept the
+              next step obvious so getting back into BudgetFree feels lighter.
+            </p>
+
+            <div className="mt-8 space-y-4">
+              {[
+                "A calmer form layout with clearer visual focus.",
+                "Inline feedback instead of abrupt browser alerts.",
+                "Faster path from sign-in to your dashboard and catalog.",
+              ].map((item) => (
+                <div
+                  key={item}
+                  className="glass-panel-strong rounded-[24px] px-5 py-4 text-sm text-slate-600"
+                >
+                  {item}
+                </div>
+              ))}
+            </div>
+          </Motion.section>
+
+          <Motion.form
+            initial={{ opacity: 0, x: 28 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.38, delay: 0.05 }}
+            onSubmit={handleSubmit}
+            className="glass-panel-strong rounded-[36px] p-6 sm:p-8"
+          >
+            <span className="eyebrow">Sign in</span>
+            <h2 className="mt-4 text-3xl font-semibold">Login to BudgetFree</h2>
+            <p className="section-copy mt-3">
+              Access your rewards, dashboard overview, and the refreshed browsing
+              experience.
+            </p>
+
+            <div className="mt-8 space-y-4">
+              <label className="block">
+                <span className="mb-2 block text-sm font-medium text-slate-600">
+                  Email
+                </span>
+                <input
+                  value={form.email}
+                  type="email"
+                  placeholder="you@example.com"
+                  className="field"
+                  onChange={(event) =>
+                    setForm({ ...form, email: event.target.value })
+                  }
+                />
+              </label>
+
+              <label className="block">
+                <span className="mb-2 block text-sm font-medium text-slate-600">
+                  Password
+                </span>
+                <div className="relative">
+                  <input
+                    value={form.password}
+                    type={showPassword ? "text" : "password"}
+                    placeholder="Enter your password"
+                    className="field pr-20"
+                    onChange={(event) =>
+                      setForm({ ...form, password: event.target.value })
+                    }
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((current) => !current)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full px-3 py-1 text-xs font-semibold text-slate-500 hover:bg-slate-100"
+                  >
+                    {showPassword ? "Hide" : "Show"}
+                  </button>
+                </div>
+              </label>
+            </div>
+
+            {error ? (
+              <div className="mt-5 rounded-[22px] border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+                {error}
+              </div>
+            ) : null}
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="primary-button mt-6 w-full disabled:cursor-not-allowed disabled:opacity-70"
+            >
+              {loading ? "Signing you in..." : "Login"}
+            </button>
+
+            <p className="mt-5 text-sm text-slate-600">
+              New here?{" "}
+              <Link className="font-semibold text-emerald-700" to="/register">
+                Create an account
+              </Link>
+            </p>
+          </Motion.form>
         </div>
-
-        {error && (
-          <p className="text-red-500 text-sm mb-2 text-center">{error}</p>
-        )}
-
-        <button className="w-full bg-green-500 text-white p-2 rounded">
-          Login
-        </button>
-
-        <p className="text-sm text-center mt-4">
-          New user? <a href="/register">Register</a>
-        </p>
-      </motion.form>
-    </div>
+      </SiteChrome>
+    </PageTransition>
   );
 }

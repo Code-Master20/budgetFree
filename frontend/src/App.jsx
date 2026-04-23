@@ -1,33 +1,36 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Home from "./pages/Home";
-import Register from "./pages/Register";
-import Login from "./pages/Login";
-import Dashboard from "./pages/Dashboard";
-import ProductDetails from "./pages/ProductDetails";
-import ProtectedRoute from "./components/ProtectedRoute";
+import { AnimatePresence } from "framer-motion";
 import { useEffect } from "react";
 import { useDispatch } from "react-redux";
+import { BrowserRouter, Route, Routes, useLocation } from "react-router-dom";
+import ProtectedRoute from "./components/ProtectedRoute";
+import { ThemeProvider } from "./components/ThemeProvider";
 import { fetchUser } from "./redux/authSlice";
+import Dashboard from "./pages/Dashboard";
+import Home from "./pages/Home";
+import Login from "./pages/Login";
+import ProductDetails from "./pages/ProductDetails";
+import Register from "./pages/Register";
 
-export default function App() {
-  const dispatch = useDispatch();
+function ScrollToTop() {
+  const location = useLocation();
 
   useEffect(() => {
-    dispatch(fetchUser());
-  }, [dispatch]);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [location.pathname]);
+
+  return null;
+}
+
+function AppRoutes() {
+  const location = useLocation();
 
   return (
-    <BrowserRouter>
-      <Routes>
-        {/* 🌍 PUBLIC */}
+    <AnimatePresence mode="wait">
+      <Routes location={location} key={location.pathname}>
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-
-        {/* 🔥 PRODUCT DETAILS (PUBLIC) */}
         <Route path="/product/:id" element={<ProductDetails />} />
-
-        {/* 🔒 PROTECTED */}
         <Route
           path="/dashboard"
           element={
@@ -37,6 +40,23 @@ export default function App() {
           }
         />
       </Routes>
-    </BrowserRouter>
+    </AnimatePresence>
+  );
+}
+
+export default function App() {
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    dispatch(fetchUser());
+  }, [dispatch]);
+
+  return (
+    <ThemeProvider>
+      <BrowserRouter>
+        <ScrollToTop />
+        <AppRoutes />
+      </BrowserRouter>
+    </ThemeProvider>
   );
 }

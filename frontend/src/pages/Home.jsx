@@ -299,7 +299,8 @@ export default function Home() {
                 </div>
                 <div lang="en">
                   <h1 className="text-3xl font-semibold [hyphens:auto] [overflow-wrap:anywhere] sm:text-5xl sm:[overflow-wrap:normal]">
-                    Find better products without overspending.
+                    Find better prod{"\u00AD"}ucts without
+                    over{"\u00AD"}spending.
                   </h1>
                   <p className="section-copy mt-4 max-w-2xl [hyphens:auto] [overflow-wrap:anywhere] sm:[overflow-wrap:normal]">
                     BudgetFree is for shoppers who want affordable products,

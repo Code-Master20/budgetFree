@@ -1,7 +1,8 @@
 import { motion as Motion, useScroll, useSpring } from "framer-motion";
 import { useMemo } from "react";
-import { useSelector } from "react-redux";
-import { Link, useLocation } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { logoutUser } from "../redux/authSlice";
 import { useTheme } from "./ThemeContext";
 
 function NavLink({ to, label, active }) {
@@ -21,7 +22,9 @@ function NavLink({ to, label, active }) {
 
 export default function SiteChrome({ children }) {
   const location = useLocation();
-  const { user } = useSelector((state) => state.auth);
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const { user, loading } = useSelector((state) => state.auth);
   const { theme, setTheme, systemTheme } = useTheme();
   const { scrollYProgress } = useScroll();
   const progress = useSpring(scrollYProgress, {
@@ -29,6 +32,14 @@ export default function SiteChrome({ children }) {
     damping: 24,
     mass: 0.2,
   });
+
+  const handleLogout = async () => {
+    const result = await dispatch(logoutUser());
+
+    if (result.meta.requestStatus === "fulfilled") {
+      navigate("/", { replace: true });
+    }
+  };
 
   const navItems = useMemo(
     () => {
@@ -97,6 +108,16 @@ export default function SiteChrome({ children }) {
                     />
                   );
                 })}
+                {user ? (
+                  <button
+                    type="button"
+                    onClick={handleLogout}
+                    disabled={loading}
+                    className="rounded-full px-4 py-2 text-sm font-semibold text-slate-600 transition hover:bg-white/70 hover:text-slate-900 disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    {loading ? "Logging out..." : "Logout"}
+                  </button>
+                ) : null}
               </div>
 
               <div className="flex flex-wrap items-center justify-end gap-2">
@@ -167,6 +188,14 @@ export default function SiteChrome({ children }) {
                   >
                     My account
                   </Link>
+                  <button
+                    type="button"
+                    onClick={handleLogout}
+                    disabled={loading}
+                    className="secondary-button px-4 py-2 text-xs disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    {loading ? "Logging out..." : "Logout"}
+                  </button>
                   {user.role === "admin" ? (
                     <Link
                       className="primary-button px-4 py-2 text-xs"

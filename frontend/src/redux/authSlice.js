@@ -25,6 +25,20 @@ export const loginUser = createAsyncThunk(
   },
 );
 
+export const logoutUser = createAsyncThunk(
+  "auth/logoutUser",
+  async (_, thunkAPI) => {
+    try {
+      await API.post("/auth/logout");
+      return null;
+    } catch (err) {
+      return thunkAPI.rejectWithValue(
+        err.response?.data?.message || "Logout failed",
+      );
+    }
+  },
+);
+
 const authSlice = createSlice({
   name: "auth",
   initialState: {
@@ -61,6 +75,20 @@ const authSlice = createSlice({
         state.loading = false;
         state.error = action.payload;
         state.hasCheckedAuth = true;
+      })
+      .addCase(logoutUser.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(logoutUser.fulfilled, (state) => {
+        state.loading = false;
+        state.user = null;
+        state.error = null;
+        state.hasCheckedAuth = true;
+      })
+      .addCase(logoutUser.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
       });
   },
 });

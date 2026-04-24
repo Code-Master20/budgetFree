@@ -297,11 +297,11 @@ export default function Home() {
                     speech={heroSpeech}
                   />
                 </div>
-                <div>
-                  <h1 className="text-3xl font-semibold sm:text-5xl">
+                <div lang="en">
+                  <h1 className="text-3xl font-semibold [hyphens:auto] [overflow-wrap:anywhere] sm:text-5xl sm:[overflow-wrap:normal]">
                     Find better products without overspending.
                   </h1>
-                  <p className="section-copy mt-4 max-w-2xl">
+                  <p className="section-copy mt-4 max-w-2xl [hyphens:auto] [overflow-wrap:anywhere] sm:[overflow-wrap:normal]">
                     BudgetFree is for shoppers who want affordable products,
                     honest reviews, and a simple way to earn points from
                     approved participation that turn into wallet balance and
@@ -312,17 +312,17 @@ export default function Home() {
                 </div>
               </div>
 
-              <div className="flex flex-col items-center gap-4 lg:min-w-[320px] lg:items-end">
-                <div className="flex flex-col items-center gap-3 lg:flex-row lg:justify-end">
-                  <Link className="primary-button" to="/products">
+              <div className="flex w-full flex-col items-center gap-4 lg:min-w-[360px] lg:w-auto lg:self-center lg:items-end">
+                <div className="grid w-full max-w-[320px] gap-3 rounded-[28px] bg-white/55 p-3 shadow-[0_18px_40px_rgba(16,24,31,0.08)] backdrop-blur sm:max-w-[360px] lg:flex lg:w-auto lg:max-w-none lg:grid-cols-none lg:items-center lg:justify-end lg:bg-transparent lg:p-0 lg:shadow-none">
+                  <Link className="primary-button w-full lg:min-w-[210px] lg:w-auto" to="/products">
                     Explore products
                   </Link>
                   {user ? (
-                    <Link className="secondary-button" to="/dashboard">
+                    <Link className="secondary-button w-full lg:min-w-[210px] lg:w-auto" to="/dashboard">
                       Open my dashboard
                     </Link>
                   ) : (
-                    <Link className="secondary-button" to="/register">
+                    <Link className="secondary-button w-full lg:min-w-[210px] lg:w-auto" to="/register">
                       Create free account
                     </Link>
                   )}

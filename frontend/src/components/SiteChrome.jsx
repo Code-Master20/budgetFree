@@ -54,6 +54,7 @@ export default function SiteChrome({ children }) {
         return [
           { to: "/", label: "Home" },
           { to: "/products", label: "Products" },
+          { to: "/participants", label: "Participants" },
           { to: "/login", label: "Login" },
           { to: "/register", label: "Sign Up" },
         ];
@@ -62,6 +63,7 @@ export default function SiteChrome({ children }) {
       const items = [
         { to: "/", label: "Home" },
         { to: "/products", label: "Products" },
+        { to: "/participants", label: "Participants" },
         { to: "/dashboard", label: "My Account" },
       ];
 
@@ -284,6 +286,12 @@ export default function SiteChrome({ children }) {
                 to="/products"
               >
                 Products
+              </Link>
+              <Link
+                className="secondary-button px-4 py-2 text-xs"
+                to="/participants"
+              >
+                Participants
               </Link>
               {user ? (
                 <>

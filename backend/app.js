@@ -53,6 +53,7 @@ const productRoutes = require("./routes/productRoutes");
 const reviewRoutes = require("./routes/reviewRoutes");
 const rewardRoutes = require("./routes/rewardRoutes");
 const pointsRoutes = require("./routes/pointsRoutes");
+const participantsRoutes = require("./routes/participantsRoutes");
 
 app.use("/api/auth", authRoutes);
 app.use("/api/admin", adminRoutes);
@@ -61,6 +62,7 @@ app.use("/api/products", productRoutes);
 app.use("/api/reviews", reviewRoutes);
 app.use("/api/rewards", rewardRoutes);
 app.use("/api/points", pointsRoutes);
+app.use("/api/participants", participantsRoutes);
 
 app.get("/", (req, res) => {
   res.send("API is running...");

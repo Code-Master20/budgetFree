@@ -39,6 +39,11 @@ const reviewSchema = new mongoose.Schema(
       default: 0,
       min: 0,
     },
+    likedVisitorTokens: {
+      type: [String],
+      default: [],
+      select: false,
+    },
   },
   { timestamps: true },
 );

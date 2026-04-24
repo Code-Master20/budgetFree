@@ -6,6 +6,7 @@ const {
   getAllReviews,
   getPendingReviews,
   rejectReview,
+  toggleReviewLike,
 } = require("../controllers/reviewController");
 
 const { protect, admin } = require("../middleware/authMiddleware");
@@ -49,6 +50,7 @@ router.patch(
 );
 
 // ✅ PUBLIC ROUTE (LAST)
+router.post("/:reviewId/like", toggleReviewLike);
 router.get("/:productId", getReviews);
 
 module.exports = router;

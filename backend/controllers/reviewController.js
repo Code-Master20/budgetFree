@@ -2,6 +2,28 @@ const Review = require("../models/Review");
 const Product = require("../models/Product");
 const User = require("../models/User");
 const { sendEmail } = require("../services/emailService");
+const crypto = require("crypto");
+
+const REVIEW_LIKE_COOKIE = "budgetfree_review_visitor";
+
+function ensureReviewVisitorToken(req, res) {
+  const existingToken = String(req.cookies[REVIEW_LIKE_COOKIE] || "").trim();
+
+  if (existingToken) {
+    return existingToken;
+  }
+
+  const nextToken = crypto.randomUUID();
+
+  res.cookie(REVIEW_LIKE_COOKIE, nextToken, {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    maxAge: 1000 * 60 * 60 * 24 * 365,
+  });
+
+  return nextToken;
+}
 
 // ================== Add Review ==================
 exports.addReview = async (req, res) => {
@@ -143,6 +165,42 @@ exports.rejectReview = async (req, res) => {
     );
 
     res.json({ message: "Review rejected" });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+exports.toggleReviewLike = async (req, res) => {
+  try {
+    const visitorToken = ensureReviewVisitorToken(req, res);
+    const review = await Review.findById(req.params.reviewId).select(
+      "+likedVisitorTokens likesCount status",
+    );
+
+    if (!review || review.status !== "approved") {
+      return res.status(404).json({ message: "Review not found" });
+    }
+
+    const existingIndex = review.likedVisitorTokens.findIndex(
+      (token) => token === visitorToken,
+    );
+    const alreadyLiked = existingIndex >= 0;
+
+    if (alreadyLiked) {
+      review.likedVisitorTokens.splice(existingIndex, 1);
+      review.likesCount = Math.max(0, (review.likesCount || 0) - 1);
+    } else {
+      review.likedVisitorTokens.push(visitorToken);
+      review.likesCount = (review.likesCount || 0) + 1;
+    }
+
+    await review.save();
+
+    res.json({
+      message: alreadyLiked ? "Review unliked" : "Review liked",
+      liked: !alreadyLiked,
+      likesCount: review.likesCount,
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

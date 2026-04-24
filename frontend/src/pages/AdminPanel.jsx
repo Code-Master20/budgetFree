@@ -1,10 +1,13 @@
 import { motion as Motion } from "framer-motion";
 import { useEffect, useMemo, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { Link } from "react-router-dom";
 import API from "../api";
 import LoadingScreen from "../components/LoadingScreen";
+import OtpVerificationCard from "../components/OtpVerificationCard";
 import PageTransition from "../components/PageTransition";
 import SiteChrome from "../components/SiteChrome";
+import { fetchUser } from "../redux/authSlice";
 
 function formatCurrency(value) {
   return new Intl.NumberFormat("en-IN", {
@@ -96,9 +99,15 @@ function listToMultiline(items) {
 }
 
 export default function AdminPanel() {
+  const dispatch = useDispatch();
+  const { user } = useSelector((state) => state.auth);
   const [status, setStatus] = useState("loading");
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
+  const [adminOtpCode, setAdminOtpCode] = useState("");
+  const [adminOtpMessage, setAdminOtpMessage] = useState("");
+  const [sendingAdminOtp, setSendingAdminOtp] = useState(false);
+  const [verifyingAdminOtp, setVerifyingAdminOtp] = useState(false);
   const [data, setData] = useState(null);
   const [allReviews, setAllReviews] = useState([]);
   const [productForm, setProductForm] = useState(initialProductForm);
@@ -110,6 +119,14 @@ export default function AdminPanel() {
   const [rejectReasons, setRejectReasons] = useState({});
   const [sendingRewardId, setSendingRewardId] = useState("");
   const [giftCardLinks, setGiftCardLinks] = useState({});
+  const hasAdminOtpVerification = Boolean(user?.otpVerification?.adminAccess);
+
+  const handleAdminOtpRequired = async () => {
+    setStatus("otp_required");
+    setError("Verify the email OTP to continue using admin tools.");
+    setSuccessMessage("");
+    await dispatch(fetchUser());
+  };
 
   const loadDashboard = async ({ showLoader = true } = {}) => {
     try {
@@ -122,6 +139,11 @@ export default function AdminPanel() {
       setData(response.data);
       setStatus("ready");
     } catch (fetchError) {
+      if (fetchError.response?.data?.code === "OTP_REQUIRED") {
+        await handleAdminOtpRequired();
+        return;
+      }
+
       setError(
         fetchError.response?.data?.message || "Unable to load admin dashboard",
       );
@@ -134,6 +156,11 @@ export default function AdminPanel() {
       const response = await API.get("/reviews/admin/all");
       setAllReviews(response.data || []);
     } catch (fetchError) {
+      if (fetchError.response?.data?.code === "OTP_REQUIRED") {
+        await handleAdminOtpRequired();
+        return;
+      }
+
       setError(
         fetchError.response?.data?.message || "Unable to load review moderation",
       );
@@ -141,12 +168,17 @@ export default function AdminPanel() {
   };
 
   useEffect(() => {
+    if (!hasAdminOtpVerification) {
+      setStatus("otp_required");
+      return;
+    }
+
     const bootstrap = async () => {
       await Promise.all([loadDashboard(), loadAllReviews()]);
     };
 
     bootstrap();
-  }, []);
+  }, [hasAdminOtpVerification]);
 
   const summaryCards = useMemo(() => {
     if (!data?.overview) {
@@ -239,6 +271,11 @@ export default function AdminPanel() {
       resetProductForm();
       await loadDashboard({ showLoader: false });
     } catch (actionError) {
+      if (actionError.response?.data?.code === "OTP_REQUIRED") {
+        await handleAdminOtpRequired();
+        return;
+      }
+
       setError(actionError.response?.data?.message || "Unable to save product");
     } finally {
       setCreatingOrUpdatingProduct(false);
@@ -266,6 +303,11 @@ export default function AdminPanel() {
         rating: product.rating ?? "",
       });
     } catch (actionError) {
+      if (actionError.response?.data?.code === "OTP_REQUIRED") {
+        await handleAdminOtpRequired();
+        return;
+      }
+
       setError(actionError.response?.data?.message || "Unable to load product");
     }
   };
@@ -292,6 +334,11 @@ export default function AdminPanel() {
       setSuccessMessage("Product removed successfully.");
       await loadDashboard({ showLoader: false });
     } catch (actionError) {
+      if (actionError.response?.data?.code === "OTP_REQUIRED") {
+        await handleAdminOtpRequired();
+        return;
+      }
+
       setError(
         actionError.response?.data?.message || "Unable to remove product",
       );
@@ -309,6 +356,11 @@ export default function AdminPanel() {
       setSuccessMessage("Review approved successfully.");
       await Promise.all([loadAllReviews(), loadDashboard({ showLoader: false })]);
     } catch (actionError) {
+      if (actionError.response?.data?.code === "OTP_REQUIRED") {
+        await handleAdminOtpRequired();
+        return;
+      }
+
       setError(
         actionError.response?.data?.message || "Unable to approve review",
       );
@@ -335,6 +387,11 @@ export default function AdminPanel() {
       }));
       await Promise.all([loadAllReviews(), loadDashboard({ showLoader: false })]);
     } catch (actionError) {
+      if (actionError.response?.data?.code === "OTP_REQUIRED") {
+        await handleAdminOtpRequired();
+        return;
+      }
+
       setError(
         actionError.response?.data?.message || "Unable to reject review",
       );
@@ -359,6 +416,11 @@ export default function AdminPanel() {
       }));
       await loadDashboard({ showLoader: false });
     } catch (actionError) {
+      if (actionError.response?.data?.code === "OTP_REQUIRED") {
+        await handleAdminOtpRequired();
+        return;
+      }
+
       setError(
         actionError.response?.data?.message || "Unable to send gift card",
       );
@@ -366,6 +428,80 @@ export default function AdminPanel() {
       setSendingRewardId("");
     }
   };
+
+  const handleSendAdminOtp = async () => {
+    try {
+      setSendingAdminOtp(true);
+      setError("");
+      setAdminOtpMessage("");
+      await API.post("/auth/otp/request", { purpose: "admin_access" });
+      setAdminOtpMessage("A 6-digit OTP was sent to your email.");
+    } catch (actionError) {
+      setError(actionError.response?.data?.message || "Unable to send admin OTP");
+    } finally {
+      setSendingAdminOtp(false);
+    }
+  };
+
+  const handleVerifyAdminOtp = async () => {
+    try {
+      setVerifyingAdminOtp(true);
+      setError("");
+      setAdminOtpMessage("");
+      await API.post("/auth/otp/verify", {
+        purpose: "admin_access",
+        code: adminOtpCode.trim(),
+      });
+      setAdminOtpCode("");
+      setAdminOtpMessage("Admin OTP verified. Loading your control room...");
+      await dispatch(fetchUser());
+    } catch (actionError) {
+      setError(actionError.response?.data?.message || "Unable to verify admin OTP");
+    } finally {
+      setVerifyingAdminOtp(false);
+    }
+  };
+
+  if (!hasAdminOtpVerification) {
+    return (
+      <PageTransition className="page-wrap">
+        <SiteChrome>
+          <div className="app-shell space-y-6">
+            <section className="glass-panel rounded-[34px] p-6 sm:p-8">
+              <span className="eyebrow">Admin security check</span>
+              <h1 className="mt-4 text-3xl font-semibold sm:text-5xl">
+                Verify an OTP before opening admin tools.
+              </h1>
+              <p className="section-copy mt-4 max-w-2xl">
+                To protect product, review, and reward operations, admin access now
+                requires a short-lived OTP sent to your verified email.
+              </p>
+            </section>
+
+            {error ? (
+              <div className="rounded-[24px] border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+                {error}
+              </div>
+            ) : null}
+
+            <OtpVerificationCard
+              title="Admin OTP required"
+              description="Send a code to your email, enter the 6-digit OTP, and we will unlock admin access for a limited time."
+              code={adminOtpCode}
+              onCodeChange={setAdminOtpCode}
+              message={adminOtpMessage}
+              onSend={handleSendAdminOtp}
+              onVerify={handleVerifyAdminOtp}
+              sending={sendingAdminOtp}
+              verifying={verifyingAdminOtp}
+              sendLabel="Send admin OTP"
+              verifyLabel="Verify and continue"
+            />
+          </div>
+        </SiteChrome>
+      </PageTransition>
+    );
+  }
 
   if (status === "loading") {
     return <LoadingScreen label="Loading admin dashboard..." />;

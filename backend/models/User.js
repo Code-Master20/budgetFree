@@ -60,6 +60,16 @@ const userSchema = new mongoose.Schema(
     },
 
     verificationToken: String,
+
+    adminOtpCodeHash: String,
+    adminOtpExpiresAt: Date,
+    adminOtpRequestedAt: Date,
+    adminOtpVerifiedUntil: Date,
+
+    rewardOtpCodeHash: String,
+    rewardOtpExpiresAt: Date,
+    rewardOtpRequestedAt: Date,
+    rewardOtpVerifiedUntil: Date,
   },
   { timestamps: true },
 );

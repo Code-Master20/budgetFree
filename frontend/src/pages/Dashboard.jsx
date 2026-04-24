@@ -1,9 +1,10 @@
 import { motion as Motion } from "framer-motion";
 import { useEffect, useState } from "react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { Link } from "react-router-dom";
 import API from "../api";
 import LoadingScreen from "../components/LoadingScreen";
+import OtpVerificationCard from "../components/OtpVerificationCard";
 import PageTransition from "../components/PageTransition";
 import SiteChrome from "../components/SiteChrome";
 import { fetchUser } from "../redux/authSlice";
@@ -75,15 +76,21 @@ function SectionCard({ title, subtitle, children, badge }) {
 
 export default function Dashboard() {
   const dispatch = useDispatch();
+  const { user } = useSelector((state) => state.auth);
   const [status, setStatus] = useState("loading");
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
+  const [rewardOtpCode, setRewardOtpCode] = useState("");
+  const [rewardOtpMessage, setRewardOtpMessage] = useState("");
+  const [sendingRewardOtp, setSendingRewardOtp] = useState(false);
+  const [verifyingRewardOtp, setVerifyingRewardOtp] = useState(false);
   const [dashboard, setDashboard] = useState(null);
   const [rewardEmail, setRewardEmail] = useState("");
   const [submitting, setSubmitting] = useState({
     convert: false,
-    reward: false,
+      reward: false,
   });
+  const hasRewardOtpVerification = Boolean(user?.otpVerification?.rewardRequest);
 
   const loadDashboard = async ({ showLoader = true } = {}) => {
     try {
@@ -136,12 +143,51 @@ export default function Dashboard() {
       await Promise.all([loadDashboard({ showLoader: false }), dispatch(fetchUser())]);
       setMessage("Amazon Pay gift card request submitted.");
     } catch (actionError) {
+      if (actionError.response?.data?.code === "OTP_REQUIRED") {
+        setError("Verify the email OTP before submitting your gift card request.");
+        await dispatch(fetchUser());
+        return;
+      }
+
       setError(
         actionError.response?.data?.message ||
           "Unable to submit your gift card request",
       );
     } finally {
       setSubmitting((current) => ({ ...current, reward: false }));
+    }
+  };
+
+  const handleSendRewardOtp = async () => {
+    try {
+      setSendingRewardOtp(true);
+      setError("");
+      setRewardOtpMessage("");
+      await API.post("/auth/otp/request", { purpose: "reward_request" });
+      setRewardOtpMessage("A 6-digit OTP was sent to your email.");
+    } catch (actionError) {
+      setError(actionError.response?.data?.message || "Unable to send reward OTP");
+    } finally {
+      setSendingRewardOtp(false);
+    }
+  };
+
+  const handleVerifyRewardOtp = async () => {
+    try {
+      setVerifyingRewardOtp(true);
+      setError("");
+      setRewardOtpMessage("");
+      await API.post("/auth/otp/verify", {
+        purpose: "reward_request",
+        code: rewardOtpCode.trim(),
+      });
+      setRewardOtpCode("");
+      setRewardOtpMessage("Reward OTP verified. You can submit the request now.");
+      await dispatch(fetchUser());
+    } catch (actionError) {
+      setError(actionError.response?.data?.message || "Unable to verify reward OTP");
+    } finally {
+      setVerifyingRewardOtp(false);
     }
   };
 
@@ -348,11 +394,33 @@ export default function Dashboard() {
                   />
                 </label>
 
+                {!hasRewardOtpVerification ? (
+                  <OtpVerificationCard
+                    title="Verify reward request OTP"
+                    description="Before we submit a gift card request, send a one-time code to your email and verify it here."
+                    code={rewardOtpCode}
+                    onCodeChange={setRewardOtpCode}
+                    message={rewardOtpMessage}
+                    onSend={handleSendRewardOtp}
+                    onVerify={handleVerifyRewardOtp}
+                    sending={sendingRewardOtp}
+                    verifying={verifyingRewardOtp}
+                    sendLabel="Send reward OTP"
+                    verifyLabel="Verify OTP"
+                  />
+                ) : (
+                  <div className="rounded-[22px] border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+                    Security check complete. Your reward request is unlocked for a
+                    limited time.
+                  </div>
+                )}
+
                 <button
                   type="submit"
                   disabled={
                     !overview.canRequestGiftCard ||
                     !rewardEmail.trim() ||
+                    !hasRewardOtpVerification ||
                     submitting.reward
                   }
                   className="primary-button disabled:cursor-not-allowed disabled:opacity-60"

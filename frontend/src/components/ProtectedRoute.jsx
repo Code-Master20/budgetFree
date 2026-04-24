@@ -7,9 +7,9 @@ export default function ProtectedRoute({
   requireAdmin = false,
   redirectUnauthorizedTo = "/dashboard",
 }) {
-  const { user, loading } = useSelector((state) => state.auth);
+  const { user, hasCheckedAuth } = useSelector((state) => state.auth);
 
-  if (loading) {
+  if (!hasCheckedAuth) {
     return <LoadingScreen label="Checking your member access..." />;
   }
 

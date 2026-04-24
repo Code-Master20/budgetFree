@@ -31,20 +31,21 @@ const authSlice = createSlice({
     user: null,
     loading: false,
     error: null,
+    hasCheckedAuth: false,
   },
   reducers: {},
   extraReducers: (builder) => {
     builder
       .addCase(fetchUser.pending, (state) => {
-        state.loading = true;
         state.error = null;
       })
       .addCase(fetchUser.fulfilled, (state, action) => {
-        state.loading = false;
         state.user = action.payload;
+        state.hasCheckedAuth = true;
       })
       .addCase(fetchUser.rejected, (state) => {
-        state.loading = false;
+        state.user = null;
+        state.hasCheckedAuth = true;
       })
       .addCase(loginUser.pending, (state) => {
         state.loading = true;
@@ -54,10 +55,12 @@ const authSlice = createSlice({
         state.loading = false;
         state.user = action.payload;
         state.error = null;
+        state.hasCheckedAuth = true;
       })
       .addCase(loginUser.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
+        state.hasCheckedAuth = true;
       });
   },
 });

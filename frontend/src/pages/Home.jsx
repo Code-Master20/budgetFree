@@ -25,9 +25,15 @@ function SpeakUpButtons({
   isSpeechSupported,
   onSpeak,
   speech,
+  className = "",
+  withDivider = true,
 }) {
   return (
-    <div className="mt-4 border-t border-slate-200/70 pt-3">
+    <div
+      className={`${
+        withDivider ? "mt-4 border-t border-slate-200/70 pt-3" : ""
+      } ${className}`.trim()}
+    >
       <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-500">
         Speak up
       </p>
@@ -205,29 +211,34 @@ export default function Home() {
                     through BudgetFree can also qualify for affiliate tracking
                     when completed within the store's valid attribution window.
                   </p>
-                  <SpeakUpButtons
-                    activeSpeechId={activeSpeechId}
-                    cardId="hero-budget-shopping-rewards"
-                    isSpeechSupported={isSpeechSupported}
-                    onSpeak={handleSpeak}
-                    speech={heroSpeech}
-                  />
                 </div>
               </div>
 
-              <div className="flex flex-wrap gap-3">
-                <Link className="primary-button" to="/products">
-                  Explore products
-                </Link>
-                {user ? (
-                  <Link className="secondary-button" to="/dashboard">
-                    Open my dashboard
+              <div className="flex flex-col items-start gap-4 lg:min-w-[320px] lg:items-end">
+                <SpeakUpButtons
+                  activeSpeechId={activeSpeechId}
+                  cardId="hero-budget-shopping-rewards"
+                  isSpeechSupported={isSpeechSupported}
+                  onSpeak={handleSpeak}
+                  speech={heroSpeech}
+                  withDivider={false}
+                  className="rounded-[24px] bg-white/70 px-4 py-4 shadow-[0_16px_34px_rgba(16,24,31,0.08)]"
+                />
+
+                <div className="flex flex-wrap gap-3">
+                  <Link className="primary-button" to="/products">
+                    Explore products
                   </Link>
-                ) : (
-                  <Link className="secondary-button" to="/register">
-                    Create free account
-                  </Link>
-                )}
+                  {user ? (
+                    <Link className="secondary-button" to="/dashboard">
+                      Open my dashboard
+                    </Link>
+                  ) : (
+                    <Link className="secondary-button" to="/register">
+                      Create free account
+                    </Link>
+                  )}
+                </div>
               </div>
             </div>
 

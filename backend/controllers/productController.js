@@ -1,4 +1,5 @@
 const Product = require("../models/Product");
+const { fetchAmazonProduct } = require("../services/amazonProductImportService");
 
 // @desc Get all products (with filters)
 exports.getProducts = async (req, res) => {
@@ -56,6 +57,43 @@ exports.getProductById = async (req, res) => {
 exports.createProduct = async (req, res) => {
   const product = await Product.create(req.body);
   res.status(201).json(product);
+};
+
+// @desc Import product from Amazon affiliate link (Admin)
+exports.importAmazonProduct = async (req, res) => {
+  try {
+    const affiliateLink = req.body?.affiliateLink?.trim();
+
+    if (!affiliateLink) {
+      return res
+        .status(400)
+        .json({ message: "Affiliate link is required for Amazon import" });
+    }
+
+    const importedProduct = await fetchAmazonProduct(affiliateLink);
+    const existingProduct = await Product.findOne({
+      affiliateLink: importedProduct.affiliateLink,
+    });
+
+    if (existingProduct) {
+      Object.assign(existingProduct, importedProduct);
+      await existingProduct.save();
+
+      return res.json({
+        message: "Amazon product refreshed successfully.",
+        product: existingProduct,
+      });
+    }
+
+    const product = await Product.create(importedProduct);
+
+    return res.status(201).json({
+      message: "Amazon product imported successfully.",
+      product,
+    });
+  } catch (error) {
+    return res.status(400).json({ message: error.message });
+  }
 };
 
 // @desc Update product (Admin)

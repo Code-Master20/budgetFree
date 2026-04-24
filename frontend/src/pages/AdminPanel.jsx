@@ -1,5 +1,5 @@
 import { motion as Motion } from "framer-motion";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useEffectEvent, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link } from "react-router-dom";
 import API from "../api";
@@ -111,9 +111,11 @@ export default function AdminPanel() {
   const [data, setData] = useState(null);
   const [allReviews, setAllReviews] = useState([]);
   const [productForm, setProductForm] = useState(initialProductForm);
+  const [amazonImportUrl, setAmazonImportUrl] = useState("");
   const [editingProductId, setEditingProductId] = useState(null);
   const [creatingOrUpdatingProduct, setCreatingOrUpdatingProduct] =
     useState(false);
+  const [importingAmazonProduct, setImportingAmazonProduct] = useState(false);
   const [deletingProductId, setDeletingProductId] = useState("");
   const [reviewActionId, setReviewActionId] = useState("");
   const [rejectReasons, setRejectReasons] = useState({});
@@ -167,14 +169,16 @@ export default function AdminPanel() {
     }
   };
 
+  const loadDashboardEvent = useEffectEvent(loadDashboard);
+  const loadAllReviewsEvent = useEffectEvent(loadAllReviews);
+
   useEffect(() => {
     if (!hasAdminOtpVerification) {
-      setStatus("otp_required");
       return;
     }
 
     const bootstrap = async () => {
-      await Promise.all([loadDashboard(), loadAllReviews()]);
+      await Promise.all([loadDashboardEvent(), loadAllReviewsEvent()]);
     };
 
     bootstrap();
@@ -279,6 +283,54 @@ export default function AdminPanel() {
       setError(actionError.response?.data?.message || "Unable to save product");
     } finally {
       setCreatingOrUpdatingProduct(false);
+    }
+  };
+
+  const handleImportAmazonProduct = async (event) => {
+    event.preventDefault();
+
+    try {
+      setImportingAmazonProduct(true);
+      setError("");
+      setSuccessMessage("");
+
+      const response = await API.post("/products/import/amazon", {
+        affiliateLink: amazonImportUrl.trim(),
+      });
+      const importedProduct = response.data?.product;
+
+      if (importedProduct?._id) {
+        setEditingProductId(importedProduct._id);
+        setProductForm({
+          title: importedProduct.title || "",
+          description: importedProduct.description || "",
+          category: importedProduct.category || "",
+          price: importedProduct.price ?? "",
+          affiliateLink: importedProduct.affiliateLink || "",
+          images: listToMultiline(importedProduct.images),
+          features: listToMultiline(importedProduct.features),
+          pros: listToMultiline(importedProduct.pros),
+          cons: listToMultiline(importedProduct.cons),
+          rating: importedProduct.rating ?? "",
+        });
+      }
+
+      setAmazonImportUrl("");
+      setSuccessMessage(
+        response.data?.message || "Amazon product imported successfully.",
+      );
+      await loadDashboard({ showLoader: false });
+    } catch (actionError) {
+      if (actionError.response?.data?.code === "OTP_REQUIRED") {
+        await handleAdminOtpRequired();
+        return;
+      }
+
+      setError(
+        actionError.response?.data?.message || "Unable to import Amazon product",
+      );
+    } finally {
+      setImportingAmazonProduct(false);
     }
   };
 
@@ -591,7 +643,43 @@ export default function AdminPanel() {
               </span>
             }
           >
-            <form onSubmit={handleCreateOrUpdateProduct} className="space-y-4">
+            <div className="space-y-6">
+              <form
+                onSubmit={handleImportAmazonProduct}
+                className="rounded-[24px] bg-white/72 p-4"
+              >
+                <div className="flex flex-col gap-4 lg:flex-row lg:items-end">
+                  <label className="block flex-1">
+                    <span className="mb-2 block text-sm font-medium text-slate-600">
+                      Amazon affiliate link
+                    </span>
+                    <input
+                      required
+                      value={amazonImportUrl}
+                      onChange={(event) => setAmazonImportUrl(event.target.value)}
+                      className="field"
+                      placeholder="https://www.amazon.in/dp/..."
+                    />
+                  </label>
+
+                  <button
+                    type="submit"
+                    disabled={importingAmazonProduct}
+                    className="primary-button disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    {importingAmazonProduct
+                      ? "Importing from Amazon..."
+                      : "Import from Amazon"}
+                  </button>
+                </div>
+                <p className="mt-3 text-sm leading-6 text-slate-500">
+                  This fills title, image, features, listed price, and sales-rank
+                  context from Amazon&apos;s API. Buyer counts and customer-rating
+                  counts are not exposed by this importer.
+                </p>
+              </form>
+
+              <form onSubmit={handleCreateOrUpdateProduct} className="space-y-4">
               <div className="grid gap-4 md:grid-cols-2">
                 <label className="block">
                   <span className="mb-2 block text-sm font-medium text-slate-600">
@@ -765,7 +853,8 @@ export default function AdminPanel() {
                   </button>
                 ) : null}
               </div>
-            </form>
+              </form>
+            </div>
           </SectionCard>
 
           <section className="grid gap-6 xl:grid-cols-2">

@@ -3,6 +3,7 @@ const {
   getProducts,
   getProductById,
   createProduct,
+  importAmazonProduct,
   updateProduct,
   deleteProduct,
 } = require("../controllers/productController");
@@ -24,6 +25,13 @@ router.post(
   admin,
   requireOtpVerification(OTP_PURPOSES.ADMIN_ACCESS),
   createProduct,
+);
+router.post(
+  "/import/amazon",
+  protect,
+  admin,
+  requireOtpVerification(OTP_PURPOSES.ADMIN_ACCESS),
+  importAmazonProduct,
 );
 router.put(
   "/:id",

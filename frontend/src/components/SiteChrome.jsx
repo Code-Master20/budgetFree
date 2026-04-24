@@ -31,10 +31,26 @@ export default function SiteChrome({ children }) {
   });
 
   const navItems = useMemo(
-    () => [
-      { to: "/", label: "Discover" },
-      { to: "/dashboard", label: user ? "Dashboard" : "Members" },
-    ],
+    () => {
+      if (!user) {
+        return [
+          { to: "/", label: "Shop" },
+          { to: "/login", label: "Login" },
+          { to: "/register", label: "Sign Up" },
+        ];
+      }
+
+      const items = [
+        { to: "/", label: "Shop" },
+        { to: "/dashboard", label: "My Account" },
+      ];
+
+      if (user.role === "admin") {
+        items.push({ to: "/admin", label: "Admin Panel" });
+      }
+
+      return items;
+    },
     [user],
   );
 
@@ -57,7 +73,7 @@ export default function SiteChrome({ children }) {
                   budgetFree
                 </p>
                 <p className="text-xs uppercase tracking-[0.24em] text-slate-500">
-                  Earn while buying
+                  Shop smarter
                 </p>
               </div>
             </Link>
@@ -116,7 +132,7 @@ export default function SiteChrome({ children }) {
                     Login
                   </Link>
                   <Link className="primary-button px-4 py-2 text-xs" to="/register">
-                    Sign up
+                    Register
                   </Link>
                 </>
               )}
@@ -131,19 +147,40 @@ export default function SiteChrome({ children }) {
         <div className="glass-panel rounded-[28px] px-5 py-5 text-sm text-slate-600 sm:px-6">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <p>
-              BudgetFree is tuned for faster decisions, calmer browsing, and
-              cleaner handoffs to checkout.
+              Compare products, track rewards, and continue from your recent
+              activity.
             </p>
             <div className="flex flex-wrap gap-2">
               <Link className="secondary-button px-4 py-2 text-xs" to="/">
-                Browse catalog
+                Shop products
               </Link>
-              <Link
-                className="secondary-button px-4 py-2 text-xs"
-                to={user ? "/dashboard" : "/login"}
-              >
-                {user ? "Open dashboard" : "Member login"}
-              </Link>
+              {user ? (
+                <>
+                  <Link
+                    className="secondary-button px-4 py-2 text-xs"
+                    to="/dashboard"
+                  >
+                    My account
+                  </Link>
+                  {user.role === "admin" ? (
+                    <Link
+                      className="primary-button px-4 py-2 text-xs"
+                      to="/admin"
+                    >
+                      Admin panel
+                    </Link>
+                  ) : null}
+                </>
+              ) : (
+                <>
+                  <Link className="secondary-button px-4 py-2 text-xs" to="/login">
+                    Login
+                  </Link>
+                  <Link className="primary-button px-4 py-2 text-xs" to="/register">
+                    Register
+                  </Link>
+                </>
+              )}
             </div>
           </div>
         </div>

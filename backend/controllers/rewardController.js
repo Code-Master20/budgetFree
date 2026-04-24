@@ -5,9 +5,28 @@ const { sendEmail } = require("../services/emailService");
 // ================== Request Reward ==================
 exports.requestReward = async (req, res) => {
   try {
-    const { email } = req.body;
+    const email = String(req.body.email || "").trim();
 
     const user = await User.findById(req.user._id);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    if (!email) {
+      return res.status(400).json({ message: "Email is required" });
+    }
+
+    const pendingRequest = await Reward.findOne({
+      userId: user._id,
+      status: "pending",
+    });
+
+    if (pendingRequest) {
+      return res.status(400).json({
+        message: "You already have a pending gift card request",
+      });
+    }
 
     if (user.walletBalance < 500) {
       return res.status(400).json({
@@ -19,6 +38,7 @@ exports.requestReward = async (req, res) => {
       userId: user._id,
       rewardAmount: user.walletBalance,
       email,
+      provider: "amazon_pay",
     });
 
     user.walletBalance = 0;

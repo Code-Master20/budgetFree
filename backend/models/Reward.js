@@ -20,6 +20,12 @@ const rewardSchema = new mongoose.Schema(
       default: "pending",
     },
 
+    provider: {
+      type: String,
+      enum: ["amazon_pay"],
+      default: "amazon_pay",
+    },
+
     giftCardLink: String,
   },
   { timestamps: true },

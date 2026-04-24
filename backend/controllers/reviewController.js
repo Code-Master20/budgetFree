@@ -109,7 +109,14 @@ exports.getPendingReviews = async (req, res) => {
 // ================== Reject Review ==================
 exports.rejectReview = async (req, res) => {
   try {
-    const { reviewId } = req.body;
+    const { reviewId, rejectionReason } = req.body;
+    const normalizedReason = (rejectionReason || "").trim();
+
+    if (!normalizedReason) {
+      return res.status(400).json({
+        message: "Rejection reason is required",
+      });
+    }
 
     const review = await Review.findById(reviewId);
 
@@ -117,17 +124,25 @@ exports.rejectReview = async (req, res) => {
       return res.status(404).json({ message: "Review not found" });
     }
 
+    if (review.status === "approved") {
+      return res.status(400).json({
+        message: "Approved reviews cannot be rejected from this endpoint",
+      });
+    }
+
     const reviewUser = await User.findById(review.userId);
 
-    await review.deleteOne();
+    review.status = "rejected";
+    review.rejectionReason = normalizedReason;
+    await review.save();
 
     await sendEmail(
       reviewUser.email,
       "Review Rejected",
-      `<p>Your review was rejected due to suspicious activity.</p>`,
+      `<p>Your review was rejected.</p><p>Reason: ${normalizedReason}</p>`,
     );
 
-    res.json({ message: "Review rejected and deleted" });
+    res.json({ message: "Review rejected" });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -144,22 +159,29 @@ exports.approveReview = async (req, res) => {
       return res.status(404).json({ message: "Review not found" });
     }
 
+    const alreadyApproved = review.status === "approved";
+
     review.status = "approved";
+    review.rejectionReason = "";
     await review.save();
 
-    await User.findByIdAndUpdate(review.userId, {
-      $inc: { points: 5 },
-    });
+    if (!alreadyApproved) {
+      await User.findByIdAndUpdate(review.userId, {
+        $inc: { points: 5 },
+      });
+    }
 
     const reviewUser = await User.findById(review.userId);
 
     await sendEmail(
       reviewUser.email,
       "Review Approved",
-      `<p>Your review has been approved. You earned 5 points.</p>`,
+      `<p>Your review has been approved.${alreadyApproved ? "" : " You earned 5 points."}</p>`,
     );
 
-    res.json({ message: "Approved & points added" });
+    res.json({
+      message: alreadyApproved ? "Review already approved" : "Approved and points added",
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

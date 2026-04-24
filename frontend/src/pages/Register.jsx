@@ -55,11 +55,11 @@ export default function Register() {
           >
             <span className="eyebrow">Create account</span>
             <h1 className="mt-4 text-3xl font-semibold">
-              Join the smoother side of shopping
+              Create your account
             </h1>
             <p className="section-copy mt-3">
-              Register once, verify your email, and come back to a cleaner dashboard
-              and browsing flow.
+              Register and verify your email to track reviews, rewards, searches,
+              and recent product visits.
             </p>
 
             <div className="mt-8 space-y-4">
@@ -162,20 +162,20 @@ export default function Register() {
             transition={{ duration: 0.38, delay: 0.05 }}
             className="glass-panel rounded-[36px] p-8"
           >
-            <span className="eyebrow">Better onboarding</span>
+            <span className="eyebrow">Why create an account</span>
             <h2 className="mt-6 text-4xl font-semibold">
-              Less interruption, more clarity.
+              Keep your shopping activity in one place.
             </h2>
             <p className="section-copy mt-5 max-w-xl">
-              Registration now feels more polished because success and error states
-              stay inside the page instead of breaking flow with popups.
+              Your account helps you keep track of reviews, points, wallet
+              balance, and reward requests.
             </p>
 
             <div className="mt-8 grid gap-4">
               {[
-                "A softer visual system with stronger hierarchy.",
-                "Smoother inputs and clearer submit states.",
-                "Verification guidance presented right where you need it.",
+                "Save recent searches and product visits.",
+                "Track review approvals, rejections, and likes.",
+                "Request Amazon Pay gift cards when your wallet is ready.",
               ].map((item) => (
                 <div
                   key={item}

@@ -1,7 +1,8 @@
 import { motion as Motion } from "framer-motion";
-import { useDeferredValue, useEffect, useState } from "react";
+import { useDeferredValue, useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link } from "react-router-dom";
+import API from "../api";
 import PageTransition from "../components/PageTransition";
 import SiteChrome from "../components/SiteChrome";
 import { fetchProducts } from "../redux/productSlice";
@@ -43,6 +44,7 @@ export default function Home() {
   const [activeCategory, setActiveCategory] = useState("All");
   const [sortBy, setSortBy] = useState("featured");
   const deferredSearch = useDeferredValue(search);
+  const lastTrackedSearch = useRef("");
 
   const { products, loading, error, total } = useSelector(
     (state) => state.products,
@@ -52,6 +54,35 @@ export default function Home() {
   useEffect(() => {
     dispatch(fetchProducts());
   }, [dispatch]);
+
+  useEffect(() => {
+    if (!user) {
+      return;
+    }
+
+    const normalizedQuery = deferredSearch.trim();
+
+    if (
+      normalizedQuery.length < 2 ||
+      normalizedQuery.toLowerCase() === lastTrackedSearch.current.toLowerCase()
+    ) {
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      API.post("/dashboard/searches", {
+        query: normalizedQuery,
+      })
+        .then(() => {
+          lastTrackedSearch.current = normalizedQuery;
+        })
+        .catch(() => {});
+    }, 700);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [deferredSearch, user]);
 
   const categories = [
     "All",
@@ -114,7 +145,7 @@ export default function Home() {
                     Login
                   </Link>
                   <Link className="primary-button" to="/register">
-                    Sign up
+                    Register
                   </Link>
                 </div>
               </div>
@@ -122,15 +153,14 @@ export default function Home() {
 
             <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
               <div className="space-y-3">
-                <span className="eyebrow">Smarter buying, calmer browsing</span>
+                <span className="eyebrow">Shop smarter</span>
                 <div>
                   <h1 className="text-3xl font-semibold sm:text-5xl">
-                    budgetFree helps your shortlist feel clear, not crowded.
+                    Find the right product faster.
                   </h1>
                   <p className="section-copy mt-4 max-w-2xl">
-                    Discover practical products, compare standout details, and
-                    move from curiosity to confidence without the noisy marketplace
-                    feel.
+                    Search products, compare the important details, and open the
+                    product page when you are ready to buy.
                   </p>
                 </div>
               </div>
@@ -146,7 +176,7 @@ export default function Home() {
                   className="secondary-button"
                   to={user ? "/dashboard" : "/register"}
                 >
-                  {user ? "View rewards" : "Sign up"}
+                  {user ? "View rewards" : "Register"}
                 </Link>
               </div>
             </div>
@@ -156,17 +186,17 @@ export default function Home() {
                 {
                   label: "Live picks",
                   value: total || products.length || "10+",
-                  note: "Fresh listings surfaced from your catalog.",
+                  note: "Products currently available to browse.",
                 },
                 {
-                  label: "Member reward flow",
+                  label: "Your points",
                   value: user?.points ?? "Track",
-                  note: "Your points stay visible without digging around.",
+                  note: "Check your current points balance quickly.",
                 },
                 {
-                  label: "Browsing style",
-                  value: "Faster",
-                  note: "Less clutter, stronger hierarchy, smoother transitions.",
+                  label: "Best use",
+                  value: "Compare",
+                  note: "Review price, rating, and category before opening details.",
                 },
               ].map((stat, index) => (
                 <Motion.div
@@ -191,13 +221,13 @@ export default function Home() {
             <div className="grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
               <div className="glass-panel-strong rounded-[28px] p-5">
                 <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">
-                  What feels better now
+                  Before you open a product
                 </p>
                 <div className="mt-4 grid gap-3 sm:grid-cols-3">
                   {[
-                    "Clearer hierarchy across cards and sections.",
-                    "Smoother movement between routes and states.",
-                    "Filters and search that feel more deliberate.",
+                    "Check category, price, and rating in one card.",
+                    "Use search to narrow down the products you want.",
+                    "Open product details only for the items you may buy.",
                   ].map((item) => (
                     <div
                       key={item}
@@ -211,21 +241,21 @@ export default function Home() {
 
               <div className="glass-panel rounded-[28px] p-5">
                 <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">
-                  Quick path
+                  Buying flow
                 </p>
                 <div className="mt-4 space-y-3">
                   <div className="rounded-[22px] bg-white/70 px-4 py-4">
                     <p className="text-sm font-semibold text-slate-900">
-                      Search, sort, and shortlist in one place
+                      Search, filter, and compare in one place
                     </p>
                     <p className="mt-1 text-sm text-slate-600">
-                      The catalog now keeps more of the decision-making flow on a
-                      single screen.
+                      Narrow the list first, then open the products worth a closer
+                      look.
                     </p>
                   </div>
                   <div className="rounded-[22px] bg-white/70 px-4 py-4 text-sm text-slate-600">
-                    Browse featured picks, compare essentials, then open the product
-                    detail page only when you want the deeper view.
+                    Product details help you review the essentials before opening
+                    the affiliate link.
                   </div>
                 </div>
               </div>
@@ -235,11 +265,11 @@ export default function Home() {
           <section className="glass-panel rounded-[32px] p-5 sm:p-7">
             <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
               <div>
-                <span className="eyebrow">Explore</span>
-                <h2 className="section-title mt-3">A smoother catalog view</h2>
+                <span className="eyebrow">Products</span>
+                <h2 className="section-title mt-3">Browse and compare products</h2>
                 <p className="section-copy mt-3 max-w-2xl">
-                  Filter by category, search instantly, and scan the strongest
-                  signals before you click through.
+                  Filter by category, search by name, and compare price and rating
+                  before opening a product page.
                 </p>
               </div>
 
@@ -327,7 +357,7 @@ export default function Home() {
                   ) : null}
                 </p>
                 <p className="text-xs uppercase tracking-[0.2em] text-slate-500">
-                  Smooth shortlist mode
+                  Ready to compare
                 </p>
               </div>
             </div>
@@ -406,8 +436,34 @@ export default function Home() {
               <div className="glass-panel-strong mt-8 rounded-[28px] px-6 py-8 text-center">
                 <h3 className="text-2xl font-semibold">Nothing matches yet</h3>
                 <p className="section-copy mt-3">
-                  Try another keyword or switch the category to widen the shortlist.
+                  Try another keyword or category to find more products.
                 </p>
+              </div>
+            ) : null}
+
+            {!user ? (
+              <div className="glass-panel-strong mt-8 flex flex-col gap-4 rounded-[30px] px-6 py-6 md:flex-row md:items-center md:justify-between">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">
+                    Finished exploring?
+                  </p>
+                  <h3 className="mt-2 text-2xl font-semibold text-slate-900">
+                    Login or register to save your activity.
+                  </h3>
+                  <p className="mt-2 text-sm text-slate-600">
+                    Create an account to track rewards, reviews, searches, and
+                    recent product visits.
+                  </p>
+                </div>
+
+                <div className="flex flex-wrap gap-3">
+                  <Link className="secondary-button" to="/login">
+                    Login
+                  </Link>
+                  <Link className="primary-button" to="/register">
+                    Register
+                  </Link>
+                </div>
               </div>
             ) : null}
           </section>

@@ -1,5 +1,6 @@
 import { motion as Motion } from "framer-motion";
 import { useEffect, useState } from "react";
+import { useSelector } from "react-redux";
 import { Link, useParams } from "react-router-dom";
 import API from "../api";
 import LoadingScreen from "../components/LoadingScreen";
@@ -33,6 +34,7 @@ function DetailGroup({ title, items, toneClass }) {
 
 export default function ProductDetails() {
   const { id } = useParams();
+  const { user } = useSelector((state) => state.auth);
   const [product, setProduct] = useState(null);
   const [status, setStatus] = useState("loading");
   const [error, setError] = useState("");
@@ -53,6 +55,14 @@ export default function ProductDetails() {
 
     fetchProduct();
   }, [id]);
+
+  useEffect(() => {
+    if (!user || status !== "ready") {
+      return;
+    }
+
+    API.post("/dashboard/visits", { productId: id }).catch(() => {});
+  }, [id, status, user]);
 
   if (status === "loading") {
     return <LoadingScreen label="Loading product details..." />;

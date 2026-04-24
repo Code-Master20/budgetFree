@@ -23,7 +23,7 @@ export default function Login() {
     const result = await dispatch(loginUser(form));
 
     if (result.meta.requestStatus === "fulfilled") {
-      navigate("/dashboard");
+      navigate(result.payload?.role === "admin" ? "/admin" : "/dashboard");
       setForm({
         email: "",
         password: "",
@@ -43,18 +43,18 @@ export default function Login() {
           >
             <span className="eyebrow">Welcome back</span>
             <h1 className="mt-6 text-4xl font-semibold">
-              Pick up where you left off without the usual friction.
+              Sign in to continue shopping.
             </h1>
             <p className="section-copy mt-5 max-w-xl">
-              We smoothed the sign-in flow, softened the visuals, and kept the
-              next step obvious so getting back into BudgetFree feels lighter.
+              Access your saved activity, review status, points, wallet balance,
+              and gift card requests.
             </p>
 
             <div className="mt-8 space-y-4">
               {[
-                "A calmer form layout with clearer visual focus.",
-                "Inline feedback instead of abrupt browser alerts.",
-                "Faster path from sign-in to your dashboard and catalog.",
+                "Continue from your recent product visits and searches.",
+                "Check review approvals, rejections, and likes.",
+                "Track points, wallet balance, and reward requests.",
               ].map((item) => (
                 <div
                   key={item}
@@ -76,8 +76,7 @@ export default function Login() {
             <span className="eyebrow">Sign in</span>
             <h2 className="mt-4 text-3xl font-semibold">Login to BudgetFree</h2>
             <p className="section-copy mt-3">
-              Access your rewards, dashboard overview, and the refreshed browsing
-              experience.
+              Access your account, rewards, and saved activity.
             </p>
 
             <div className="mt-8 space-y-4">

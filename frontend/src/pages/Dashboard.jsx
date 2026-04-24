@@ -1,15 +1,180 @@
 import { motion as Motion } from "framer-motion";
-import { useSelector } from "react-redux";
+import { useEffect, useState } from "react";
+import { useDispatch } from "react-redux";
 import { Link } from "react-router-dom";
+import API from "../api";
+import LoadingScreen from "../components/LoadingScreen";
 import PageTransition from "../components/PageTransition";
 import SiteChrome from "../components/SiteChrome";
+import { fetchUser } from "../redux/authSlice";
+
+function formatCurrency(value) {
+  return new Intl.NumberFormat("en-IN", {
+    style: "currency",
+    currency: "INR",
+    maximumFractionDigits: 0,
+  }).format(value || 0);
+}
+
+function formatDate(value) {
+  if (!value) {
+    return "Not available";
+  }
+
+  return new Date(value).toLocaleDateString("en-IN", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+}
+
+function StatusPill({ status }) {
+  const toneClass =
+    status === "approved" || status === "sent"
+      ? "bg-emerald-100/90 text-emerald-800"
+      : status === "rejected"
+        ? "bg-rose-100/90 text-rose-800"
+        : "bg-amber-100/90 text-amber-800";
+
+  return <span className={`pill ${toneClass}`}>{status}</span>;
+}
+
+function SummaryCard({ label, value, note, delay = 0 }) {
+  return (
+    <Motion.article
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3, delay }}
+      className="glass-panel-strong rounded-[28px] p-5"
+    >
+      <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">
+        {label}
+      </p>
+      <p className="mt-4 break-words text-3xl font-semibold text-slate-900">
+        {value}
+      </p>
+      <p className="mt-3 text-sm leading-6 text-slate-600">{note}</p>
+    </Motion.article>
+  );
+}
+
+function SectionCard({ title, subtitle, children, badge }) {
+  return (
+    <section className="glass-panel rounded-[34px] p-6">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h2 className="text-2xl font-semibold text-slate-900">{title}</h2>
+          <p className="section-copy mt-2">{subtitle}</p>
+        </div>
+        {badge ? <div>{badge}</div> : null}
+      </div>
+      <div className="mt-5">{children}</div>
+    </section>
+  );
+}
 
 export default function Dashboard() {
-  const { user } = useSelector((state) => state.auth);
-  const points = user?.points || 0;
-  const tier = points >= 500 ? "Gold" : points >= 150 ? "Plus" : "Starter";
-  const tierMax = tier === "Gold" ? 800 : tier === "Plus" ? 500 : 150;
-  const progress = Math.min((points / tierMax) * 100, 100);
+  const dispatch = useDispatch();
+  const [status, setStatus] = useState("loading");
+  const [error, setError] = useState("");
+  const [message, setMessage] = useState("");
+  const [dashboard, setDashboard] = useState(null);
+  const [rewardEmail, setRewardEmail] = useState("");
+  const [submitting, setSubmitting] = useState({
+    convert: false,
+    reward: false,
+  });
+
+  const loadDashboard = async ({ showLoader = true } = {}) => {
+    try {
+      if (showLoader) {
+        setStatus("loading");
+      }
+
+      setError("");
+      const response = await API.get("/dashboard");
+      setDashboard(response.data);
+      setRewardEmail((current) => current || response.data.profile.email || "");
+      setStatus("ready");
+    } catch (fetchError) {
+      setError(
+        fetchError.response?.data?.message || "Unable to load your dashboard",
+      );
+      setStatus("error");
+    }
+  };
+
+  useEffect(() => {
+    loadDashboard();
+  }, []);
+
+  const handleConvertPoints = async () => {
+    try {
+      setSubmitting((current) => ({ ...current, convert: true }));
+      setMessage("");
+      setError("");
+      await API.post("/points/convert");
+      await Promise.all([loadDashboard({ showLoader: false }), dispatch(fetchUser())]);
+      setMessage("Points converted successfully.");
+    } catch (actionError) {
+      setError(
+        actionError.response?.data?.message || "Unable to convert points",
+      );
+    } finally {
+      setSubmitting((current) => ({ ...current, convert: false }));
+    }
+  };
+
+  const handleRewardRequest = async (event) => {
+    event.preventDefault();
+
+    try {
+      setSubmitting((current) => ({ ...current, reward: true }));
+      setMessage("");
+      setError("");
+      await API.post("/rewards/request", { email: rewardEmail.trim() });
+      await Promise.all([loadDashboard({ showLoader: false }), dispatch(fetchUser())]);
+      setMessage("Amazon Pay gift card request submitted.");
+    } catch (actionError) {
+      setError(
+        actionError.response?.data?.message ||
+          "Unable to submit your gift card request",
+      );
+    } finally {
+      setSubmitting((current) => ({ ...current, reward: false }));
+    }
+  };
+
+  if (status === "loading") {
+    return <LoadingScreen label="Loading your dashboard..." />;
+  }
+
+  if (status === "error") {
+    return (
+      <PageTransition className="page-wrap">
+        <SiteChrome>
+          <div className="app-shell">
+            <div className="glass-panel mx-auto max-w-2xl rounded-[32px] px-6 py-8 text-center">
+              <h1 className="text-3xl font-semibold">Dashboard unavailable</h1>
+              <p className="section-copy mt-3">{error}</p>
+              <Link className="primary-button mt-6" to="/">
+                Back to catalog
+              </Link>
+            </div>
+          </div>
+        </SiteChrome>
+      </PageTransition>
+    );
+  }
+
+  const overview = dashboard?.overview || {};
+  const reviewCounts = overview.reviewCounts || {
+    total: 0,
+    pending: 0,
+    approved: 0,
+    rejected: 0,
+  };
+  const latestRewardRequest = overview.latestRewardRequest;
 
   return (
     <PageTransition className="page-wrap">
@@ -25,11 +190,11 @@ export default function Dashboard() {
               <div>
                 <span className="eyebrow">Member dashboard</span>
                 <h1 className="mt-4 text-3xl font-semibold sm:text-5xl">
-                  Welcome back, {user?.name || "Member"}.
+                  Welcome back, {dashboard?.profile?.name || "Member"}.
                 </h1>
                 <p className="section-copy mt-4 max-w-2xl">
-                  Your account overview now surfaces the essentials first so it
-                  feels easier to check progress and jump back into the catalog.
+                  Check your recent activity, review status, points, wallet
+                  balance, and Amazon Pay gift card requests.
                 </p>
               </div>
 
@@ -38,153 +203,341 @@ export default function Dashboard() {
                   Browse products
                 </Link>
                 <Link className="secondary-button" to="/">
-                  Review catalog
+                  Continue searching
                 </Link>
               </div>
             </div>
           </Motion.section>
 
-          <section className="grid gap-5 md:grid-cols-3">
+          {message ? (
+            <div className="rounded-[24px] border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+              {message}
+            </div>
+          ) : null}
+
+          {error ? (
+            <div className="rounded-[24px] border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+              {error}
+            </div>
+          ) : null}
+
+          <section className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
             {[
               {
                 label: "Reward points",
-                value: points,
-                note: "Keep collecting points as you browse and engage.",
+                value: overview.points || 0,
+                note: overview.canConvertPoints
+                  ? "You are eligible to convert points to wallet balance."
+                  : "Reach 100 points to unlock the next conversion.",
               },
               {
-                label: "Membership tier",
-                value: tier,
-                note: "A simple snapshot of your current standing.",
+                label: "Wallet balance",
+                value: formatCurrency(overview.walletBalance),
+                note: "Reach Rs 500 to request an Amazon Pay gift card.",
               },
               {
-                label: "Account email",
-                value: user?.email || "No email",
-                note: "Your sign-in identity stays visible at a glance.",
+                label: "Pending reviews",
+                value: reviewCounts.pending,
+                note: "These reviews are still waiting for admin moderation.",
+              },
+              {
+                label: "Gift card status",
+                value: latestRewardRequest?.status || "none",
+                note: latestRewardRequest
+                  ? `Latest request submitted on ${formatDate(latestRewardRequest.createdAt)}.`
+                  : "No Amazon Pay gift card request submitted yet.",
               },
             ].map((card, index) => (
-              <Motion.article
+              <SummaryCard
                 key={card.label}
-                initial={{ opacity: 0, y: 24 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.32, delay: index * 0.06 }}
-                className="glass-panel-strong rounded-[28px] p-5"
-              >
-                <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">
-                  {card.label}
-                </p>
-                <p className="mt-4 break-words text-3xl font-semibold text-slate-900">
-                  {card.value}
-                </p>
-                <p className="mt-3 text-sm leading-6 text-slate-600">{card.note}</p>
-              </Motion.article>
+                label={card.label}
+                value={card.value}
+                note={card.note}
+                delay={index * 0.05}
+              />
             ))}
           </section>
 
-          <section className="grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">
-            <div className="glass-panel-strong rounded-[34px] p-6">
-              <div className="flex items-center justify-between gap-4">
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">
-                    Progress to next level
+          <section className="grid gap-6 xl:grid-cols-2">
+            <SectionCard
+              title="Points and wallet"
+              subtitle="Track your balance and convert points when eligible."
+              badge={
+                <span className="pill bg-slate-100/90 text-slate-700">
+                  Last conversion: {formatDate(overview.lastConversion)}
+                </span>
+              }
+            >
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="rounded-[24px] bg-white/72 px-4 py-4">
+                  <p className="text-sm text-slate-500">Current points</p>
+                  <p className="mt-2 text-3xl font-semibold text-slate-900">
+                    {overview.points || 0}
                   </p>
-                  <h2 className="mt-2 text-2xl font-semibold text-slate-900">
-                    {tier} member progress
-                  </h2>
+                  <p className="mt-2 text-sm text-slate-600">
+                    Approved reviews add points to your account.
+                  </p>
                 </div>
+                <div className="rounded-[24px] bg-white/72 px-4 py-4">
+                  <p className="text-sm text-slate-500">Current wallet</p>
+                  <p className="mt-2 text-3xl font-semibold text-slate-900">
+                    {formatCurrency(overview.walletBalance)}
+                  </p>
+                  <p className="mt-2 text-sm text-slate-600">
+                    Use your wallet balance when you request a gift card.
+                  </p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={handleConvertPoints}
+                disabled={!overview.canConvertPoints || submitting.convert}
+                className="primary-button mt-5 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {submitting.convert ? "Converting..." : "Convert 100 points to Rs 50"}
+              </button>
+            </SectionCard>
+
+            <SectionCard
+              title="Amazon Pay gift card"
+              subtitle="See your current request status or submit a new request."
+              badge={
+                latestRewardRequest ? (
+                  <StatusPill status={latestRewardRequest.status} />
+                ) : (
+                  <span className="pill bg-slate-100/90 text-slate-700">
+                    No request yet
+                  </span>
+                )
+              }
+            >
+              {latestRewardRequest ? (
+                <div className="rounded-[24px] bg-white/72 px-4 py-4 text-sm text-slate-600">
+                  <p className="font-semibold text-slate-900">
+                    Latest Amazon Pay request
+                  </p>
+                  <div className="mt-3 flex flex-wrap gap-2 text-xs text-slate-500">
+                    <span>Amount: {formatCurrency(latestRewardRequest.rewardAmount)}</span>
+                    <span>Submitted: {formatDate(latestRewardRequest.createdAt)}</span>
+                  </div>
+                  {latestRewardRequest.giftCardLink ? (
+                    <a
+                      className="primary-button mt-4"
+                      href={latestRewardRequest.giftCardLink}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      Open gift card
+                    </a>
+                  ) : null}
+                </div>
+              ) : null}
+
+              <form onSubmit={handleRewardRequest} className="mt-5 space-y-4">
+                <label className="block">
+                  <span className="mb-2 block text-sm font-medium text-slate-600">
+                    Gift card delivery email
+                  </span>
+                  <input
+                    type="email"
+                    value={rewardEmail}
+                    onChange={(event) => setRewardEmail(event.target.value)}
+                    className="field"
+                    placeholder="you@example.com"
+                  />
+                </label>
+
+                <button
+                  type="submit"
+                  disabled={
+                    !overview.canRequestGiftCard ||
+                    !rewardEmail.trim() ||
+                    submitting.reward
+                  }
+                  className="primary-button disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {submitting.reward
+                    ? "Submitting..."
+                    : "Request Amazon Pay gift card"}
+                </button>
+
+                {!overview.canRequestGiftCard ? (
+                  <p className="text-sm text-slate-600">
+                    You need at least Rs 500 in wallet balance and no pending gift
+                    card request to submit a new request.
+                  </p>
+                ) : null}
+              </form>
+            </SectionCard>
+          </section>
+
+          <section className="grid gap-6 xl:grid-cols-2">
+            <SectionCard
+              title="Recently searched products"
+              subtitle="Your latest saved search terms."
+              badge={
+                <span className="pill bg-slate-100/90 text-slate-700">
+                  {dashboard?.recentSearches?.length || 0} saved
+                </span>
+              }
+            >
+              <div className="space-y-3">
+                {dashboard?.recentSearches?.length ? (
+                  dashboard.recentSearches.map((entry) => (
+                    <div
+                      key={`${entry.query}-${entry.searchedAt}`}
+                      className="rounded-[24px] bg-white/72 px-4 py-4 text-sm text-slate-600"
+                    >
+                      <p className="font-semibold text-slate-900">{entry.query}</p>
+                      <p className="mt-1 text-xs uppercase tracking-[0.2em] text-slate-500">
+                        Searched on {formatDate(entry.searchedAt)}
+                      </p>
+                    </div>
+                  ))
+                ) : (
+                  <div className="rounded-[24px] bg-white/72 px-4 py-4 text-sm text-slate-600">
+                    Search the catalog while logged in and your recent search terms
+                    will appear here.
+                  </div>
+                )}
+              </div>
+            </SectionCard>
+
+            <SectionCard
+              title="Recently visited products"
+              subtitle="The latest product pages you opened."
+              badge={
+                <span className="pill bg-slate-100/90 text-slate-700">
+                  {dashboard?.recentlyVisitedProducts?.length || 0} visits
+                </span>
+              }
+            >
+              <div className="space-y-4">
+                {dashboard?.recentlyVisitedProducts?.length ? (
+                  dashboard.recentlyVisitedProducts.map((entry) => (
+                    <Link
+                      key={`${entry.product?._id}-${entry.visitedAt}`}
+                      to={`/product/${entry.product?._id}`}
+                      className="block rounded-[24px] bg-white/72 px-4 py-4 text-sm text-slate-600"
+                    >
+                      <div className="flex flex-wrap items-center justify-between gap-3">
+                        <p className="font-semibold text-slate-900">
+                          {entry.product?.title}
+                        </p>
+                        <span className="pill">{entry.product?.category}</span>
+                      </div>
+                      <div className="mt-3 flex flex-wrap gap-2 text-xs text-slate-500">
+                        <span>Price: {formatCurrency(entry.product?.price)}</span>
+                        <span>
+                          Rating: {Number(entry.product?.rating || 0).toFixed(1)}
+                        </span>
+                        <span>Visited: {formatDate(entry.visitedAt)}</span>
+                      </div>
+                    </Link>
+                  ))
+                ) : (
+                  <div className="rounded-[24px] bg-white/72 px-4 py-4 text-sm text-slate-600">
+                    Open a product page while logged in and it will show up in this
+                    list.
+                  </div>
+                )}
+              </div>
+            </SectionCard>
+          </section>
+
+          <SectionCard
+            title="Your reviews"
+            subtitle="See review status, likes, and rejection reasons. Review images stay hidden here."
+            badge={
+              <div className="flex flex-wrap gap-2">
                 <span className="pill bg-amber-100/90 text-amber-800">
-                  {Math.round(progress)}%
+                  Pending {reviewCounts.pending}
+                </span>
+                <span className="pill bg-emerald-100/90 text-emerald-800">
+                  Approved {reviewCounts.approved}
+                </span>
+                <span className="pill bg-rose-100/90 text-rose-800">
+                  Rejected {reviewCounts.rejected}
                 </span>
               </div>
-
-              <div className="mt-5 h-3 overflow-hidden rounded-full bg-slate-200/70">
-                <Motion.div
-                  initial={{ width: 0 }}
-                  animate={{ width: `${progress}%` }}
-                  transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-                  className="h-full rounded-full bg-gradient-to-r from-emerald-700 via-teal-500 to-amber-400"
-                />
-              </div>
-
-              <div className="mt-5 grid gap-4 sm:grid-cols-3">
-                {[
-                  { label: "Current points", value: points },
-                  { label: "Current tier", value: tier },
-                  { label: "Tier cap", value: tierMax },
-                ].map((item) => (
+            }
+          >
+            <div className="space-y-4">
+              {dashboard?.reviews?.length ? (
+                dashboard.reviews.map((review) => (
                   <div
-                    key={item.label}
-                    className="rounded-[22px] bg-white/72 px-4 py-4 text-center"
+                    key={review._id}
+                    className="rounded-[26px] bg-white/72 px-4 py-4 text-sm text-slate-600"
                   >
-                    <p className="text-2xl font-semibold text-slate-900">
-                      {item.value}
-                    </p>
-                    <p className="mt-1 text-xs uppercase tracking-[0.2em] text-slate-500">
-                      {item.label}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </div>
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                      <div>
+                        <p className="text-lg font-semibold text-slate-900">
+                          {review.productId?.title || "Unknown product"}
+                        </p>
+                        <div className="mt-2 flex flex-wrap gap-2 text-xs text-slate-500">
+                          <span>Rating: {review.rating}/5</span>
+                          <span>Likes: {review.likesCount || 0}</span>
+                          <span>Submitted: {formatDate(review.createdAt)}</span>
+                        </div>
+                      </div>
+                      <StatusPill status={review.status} />
+                    </div>
 
-            <div className="glass-panel rounded-[34px] p-6">
-              <h2 className="text-2xl font-semibold">Today’s smooth path</h2>
-              <div className="mt-4 space-y-3">
-                {[
-                  "Open the refreshed catalog and filter faster.",
-                  "Use product detail pages for richer comparison.",
-                  "Keep an eye on reward progress without extra clicks.",
-                ].map((item) => (
+                    <p className="mt-4 leading-6">{review.reviewText}</p>
+
+                    {review.status === "rejected" && review.rejectionReason ? (
+                      <div className="mt-4 rounded-[20px] border border-rose-200 bg-rose-50 px-4 py-3 text-rose-700">
+                        Rejection reason: {review.rejectionReason}
+                      </div>
+                    ) : null}
+                  </div>
+                ))
+              ) : (
+                <div className="rounded-[24px] bg-white/72 px-4 py-4 text-sm text-slate-600">
+                  You have not submitted any reviews yet.
+                </div>
+              )}
+            </div>
+          </SectionCard>
+
+          <SectionCard
+            title="Gift card request history"
+            subtitle="Your latest Amazon Pay reward requests and their status."
+            badge={
+              <span className="pill bg-slate-100/90 text-slate-700">
+                {dashboard?.rewardRequests?.length || 0} requests
+              </span>
+            }
+          >
+            <div className="space-y-4">
+              {dashboard?.rewardRequests?.length ? (
+                dashboard.rewardRequests.map((request) => (
                   <div
-                    key={item}
-                    className="rounded-[22px] bg-white/70 px-4 py-4 text-sm leading-6 text-slate-600"
+                    key={request._id}
+                    className="rounded-[24px] bg-white/72 px-4 py-4 text-sm text-slate-600"
                   >
-                    {item}
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+                      <p className="font-semibold text-slate-900">
+                        Amazon Pay gift card
+                      </p>
+                      <StatusPill status={request.status} />
+                    </div>
+                    <div className="mt-3 flex flex-wrap gap-2 text-xs text-slate-500">
+                      <span>Amount: {formatCurrency(request.rewardAmount)}</span>
+                      <span>Requested: {formatDate(request.createdAt)}</span>
+                      <span>Delivery: {request.email}</span>
+                    </div>
                   </div>
-                ))}
-              </div>
+                ))
+              ) : (
+                <div className="rounded-[24px] bg-white/72 px-4 py-4 text-sm text-slate-600">
+                  Your reward request history will appear here once you submit a
+                  request.
+                </div>
+              )}
             </div>
-          </section>
-
-          <section className="grid gap-6 lg:grid-cols-[0.95fr_1.05fr]">
-            <div className="glass-panel rounded-[34px] p-6">
-              <h2 className="text-2xl font-semibold">Account rhythm</h2>
-              <p className="section-copy mt-3">
-                This view is now tuned for quick check-ins instead of dense account
-                clutter.
-              </p>
-              <div className="soft-divider my-6" />
-              <div className="space-y-4 text-sm text-slate-600">
-                <div className="rounded-[22px] bg-white/70 px-4 py-4">
-                  Personalized greeting and clean account summary.
-                </div>
-                <div className="rounded-[22px] bg-white/70 px-4 py-4">
-                  Reward status surfaced without extra clicks.
-                </div>
-                <div className="rounded-[22px] bg-white/70 px-4 py-4">
-                  Clear path back to product discovery.
-                </div>
-              </div>
-            </div>
-
-            <div className="glass-panel rounded-[34px] p-6">
-              <h2 className="text-2xl font-semibold">Next best actions</h2>
-              <div className="mt-5 grid gap-4 sm:grid-cols-2">
-                <Link className="glass-panel-strong rounded-[24px] p-5" to="/">
-                  <p className="text-lg font-semibold">Continue browsing</p>
-                  <p className="mt-2 text-sm leading-6 text-slate-600">
-                    Re-enter the catalog with the new filters and cleaner cards.
-                  </p>
-                </Link>
-                <div className="glass-panel-strong rounded-[24px] p-5">
-                  <p className="text-lg font-semibold">Stay ready for rewards</p>
-                  <p className="mt-2 text-sm leading-6 text-slate-600">
-                    Your points snapshot is updated in a calmer, easier-to-scan
-                    block.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </section>
+          </SectionCard>
         </div>
       </SiteChrome>
     </PageTransition>

@@ -27,6 +27,32 @@ const userSchema = new mongoose.Schema(
 
     lastConversion: Date,
 
+    recentSearches: [
+      {
+        query: {
+          type: String,
+          trim: true,
+        },
+        searchedAt: {
+          type: Date,
+          default: Date.now,
+        },
+      },
+    ],
+
+    recentlyVisitedProducts: [
+      {
+        productId: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "Product",
+        },
+        visitedAt: {
+          type: Date,
+          default: Date.now,
+        },
+      },
+    ],
+
     // 🔥 NEW FIELDS
     isVerified: {
       type: Boolean,

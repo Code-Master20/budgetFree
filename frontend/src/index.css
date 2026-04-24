@@ -211,16 +211,44 @@ a {
     @apply w-full rounded-2xl border px-4 py-3 text-sm outline-none;
     border-color: rgba(117, 140, 128, 0.2);
     background: rgba(255, 255, 255, 0.88);
+    color: var(--app-ink);
+    caret-color: var(--app-primary);
     transition:
       border-color 180ms ease,
       box-shadow 180ms ease,
-      background-color 180ms ease;
+      background-color 180ms ease,
+      color 180ms ease;
+  }
+
+  .field::placeholder {
+    color: var(--app-muted);
   }
 
   .field:focus {
     border-color: rgba(20, 99, 86, 0.45);
     box-shadow: 0 0 0 4px rgba(20, 99, 86, 0.12);
     background: rgba(255, 255, 255, 1);
+  }
+
+  :root[data-theme="dark"] .field {
+    border-color: rgba(148, 163, 184, 0.24);
+    background: rgba(8, 15, 20, 0.92);
+    color: #edf4f5;
+  }
+
+  :root[data-theme="dark"] .field::placeholder {
+    color: #8fa2ab;
+  }
+
+  :root[data-theme="dark"] .field:focus {
+    border-color: rgba(92, 210, 190, 0.56);
+    box-shadow: 0 0 0 4px rgba(71, 182, 164, 0.16);
+    background: rgba(11, 19, 25, 0.98);
+  }
+
+  :root[data-theme="dark"] .field option {
+    background: #0f171d;
+    color: #edf4f5;
   }
 
   .soft-divider {

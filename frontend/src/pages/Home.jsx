@@ -304,14 +304,12 @@ export default function Home() {
               </div>
 
               <div className="flex flex-col items-start gap-4 lg:min-w-[320px] lg:items-end">
-                <SpeakUpButtons
+                <CompactSpeakUpMenu
                   activeSpeechId={activeSpeechId}
                   cardId="hero-budget-shopping-rewards"
                   isSpeechSupported={isSpeechSupported}
                   onSpeak={handleSpeak}
                   speech={heroSpeech}
-                  withDivider={false}
-                  className="rounded-[24px] bg-white/70 px-4 py-4 shadow-[0_16px_34px_rgba(16,24,31,0.08)]"
                 />
 
                 <div className="flex flex-wrap gap-3">

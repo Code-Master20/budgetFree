@@ -126,31 +126,6 @@ export default function Home() {
             transition={{ duration: 0.35 }}
             className="glass-panel flex flex-col gap-5 rounded-[32px] px-5 py-5 sm:px-7"
           >
-            {!user ? (
-              <div className="glass-panel-strong flex flex-col gap-4 rounded-[28px] p-5 md:flex-row md:items-center md:justify-between">
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">
-                    Start here
-                  </p>
-                  <h2 className="mt-2 text-2xl font-semibold text-slate-900">
-                    Need an account?
-                  </h2>
-                  <p className="mt-2 text-sm text-slate-600">
-                    Use these quick links to login or sign up from the homepage.
-                  </p>
-                </div>
-
-                <div className="flex flex-wrap gap-3">
-                  <Link className="secondary-button" to="/login">
-                    Login
-                  </Link>
-                  <Link className="primary-button" to="/register">
-                    Register
-                  </Link>
-                </div>
-              </div>
-            ) : null}
-
             <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
               <div className="space-y-3">
                 <span className="eyebrow">Shop smarter</span>
@@ -165,20 +140,16 @@ export default function Home() {
                 </div>
               </div>
 
-              <div className="flex flex-wrap gap-3">
-                <Link
-                  className="primary-button"
-                  to={user ? "/dashboard" : "/login"}
-                >
-                  {user ? "Open dashboard" : "Login"}
-                </Link>
-                <Link
-                  className="secondary-button"
-                  to={user ? "/dashboard" : "/register"}
-                >
-                  {user ? "View rewards" : "Register"}
-                </Link>
-              </div>
+              {user ? (
+                <div className="flex flex-wrap gap-3">
+                  <Link className="primary-button" to="/dashboard">
+                    Open dashboard
+                  </Link>
+                  <Link className="secondary-button" to="/dashboard">
+                    View rewards
+                  </Link>
+                </div>
+              ) : null}
             </div>
 
             <div className="grid gap-4 md:grid-cols-3">
@@ -438,32 +409,6 @@ export default function Home() {
                 <p className="section-copy mt-3">
                   Try another keyword or category to find more products.
                 </p>
-              </div>
-            ) : null}
-
-            {!user ? (
-              <div className="glass-panel-strong mt-8 flex flex-col gap-4 rounded-[30px] px-6 py-6 md:flex-row md:items-center md:justify-between">
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">
-                    Finished exploring?
-                  </p>
-                  <h3 className="mt-2 text-2xl font-semibold text-slate-900">
-                    Login or register to save your activity.
-                  </h3>
-                  <p className="mt-2 text-sm text-slate-600">
-                    Create an account to track rewards, reviews, searches, and
-                    recent product visits.
-                  </p>
-                </div>
-
-                <div className="flex flex-wrap gap-3">
-                  <Link className="secondary-button" to="/login">
-                    Login
-                  </Link>
-                  <Link className="primary-button" to="/register">
-                    Register
-                  </Link>
-                </div>
               </div>
             ) : null}
           </section>

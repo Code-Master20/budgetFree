@@ -12,10 +12,47 @@ const {
 } = require("../utils/otp");
 
 const isProduction = process.env.NODE_ENV === "production";
-const cookieOptions = {
-  httpOnly: true,
-  secure: isProduction,
-  sameSite: "lax",
+
+const getRequestProtocol = (req) => {
+  const forwardedProto = req.headers["x-forwarded-proto"];
+
+  if (typeof forwardedProto === "string" && forwardedProto.length) {
+    return forwardedProto.split(",")[0].trim();
+  }
+
+  return req.protocol;
+};
+
+const getCookieOptions = (req) => {
+  const origin = req.get("origin");
+  const requestProtocol = getRequestProtocol(req);
+  const isSecureRequest = requestProtocol === "https";
+  let isCrossOriginRequest = false;
+
+  if (origin) {
+    try {
+      const originUrl = new URL(origin);
+      const requestHost = req.get("host");
+
+      isCrossOriginRequest = originUrl.host !== requestHost;
+    } catch {
+      isCrossOriginRequest = false;
+    }
+  }
+
+  if (isCrossOriginRequest && isSecureRequest) {
+    return {
+      httpOnly: true,
+      secure: true,
+      sameSite: "none",
+    };
+  }
+
+  return {
+    httpOnly: true,
+    secure: isProduction && isSecureRequest,
+    sameSite: "lax",
+  };
 };
 
 const stripTrailingSlash = (value) => value.replace(/\/+$/, "");
@@ -212,7 +249,7 @@ exports.login = async (req, res) => {
 
     const token = generateToken(user._id);
 
-    res.cookie("token", token, cookieOptions);
+    res.cookie("token", token, getCookieOptions(req));
 
     res.json(buildSafeUserPayload(user));
   } catch (error) {
@@ -334,7 +371,7 @@ exports.verifyOtp = async (req, res) => {
 };
 
 exports.logout = (req, res) => {
-  res.clearCookie("token", cookieOptions);
+  res.clearCookie("token", getCookieOptions(req));
 
   res.json({ message: "Logged out" });
 };

@@ -94,7 +94,7 @@ export default function SiteChrome({ children }) {
                     budgetFree
                   </p>
                   <p className="text-xs uppercase tracking-[0.24em] text-slate-500">
-                    Shop smarter
+                    Budget shopping rewards
                   </p>
                 </div>
               </Link>
@@ -272,8 +272,8 @@ export default function SiteChrome({ children }) {
         <div className="glass-panel rounded-[28px] px-5 py-5 text-sm text-slate-600 sm:px-6">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <p>
-              Compare products, track rewards, and continue from your recent
-              activity.
+              Find affordable products, read reviews, earn points, and redeem
+              rewards with BudgetFree.
             </p>
             <div className="flex flex-wrap gap-2">
               <Link className="secondary-button px-4 py-2 text-xs" to="/">

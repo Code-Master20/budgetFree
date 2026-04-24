@@ -153,8 +153,10 @@ export default function ProductDetails() {
                   Rs {product.price ?? "N/A"}
                 </p>
                 <p className="mt-4 text-sm leading-6 text-slate-600">
-                  Ready to compare on the store page? Open the affiliate link in a
-                  new tab when you are comfortable with the details here.
+                  Ready to continue on the store page? Open the affiliate link
+                  in a new tab when you are comfortable with the details here.
+                  If you place a qualifying order, affiliate tracking depends on
+                  that partner store's attribution window and terms.
                 </p>
                 <a
                   href={product.affiliateLink}
@@ -199,26 +201,17 @@ export default function ProductDetails() {
 
               <div className="glass-panel-strong rounded-[34px] p-6">
                 <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">
-                  Snapshot
+                  Affiliate note
                 </p>
-                <div className="mt-4 grid grid-cols-3 gap-3 text-center">
-                  {[
-                    { label: "Features", value: product.features?.length || 0 },
-                    { label: "Pros", value: product.pros?.length || 0 },
-                    { label: "Cons", value: product.cons?.length || 0 },
-                  ].map((item) => (
-                    <div
-                      key={item.label}
-                      className="rounded-[22px] bg-white/70 px-3 py-4"
-                    >
-                      <p className="text-2xl font-semibold text-slate-900">
-                        {item.value}
-                      </p>
-                      <p className="mt-1 text-xs uppercase tracking-[0.18em] text-slate-500">
-                        {item.label}
-                      </p>
-                    </div>
-                  ))}
+                <div className="mt-4 space-y-3 text-sm leading-6 text-slate-600">
+                  <div className="rounded-[22px] bg-white/70 px-4 py-4">
+                    BudgetFree may earn from qualifying purchases made after you
+                    open a partner-store link from this page.
+                  </div>
+                  <div className="rounded-[22px] bg-white/70 px-4 py-4">
+                    The valid tracking duration is set by the ecommerce partner,
+                    so there is no single timing rule for every affiliate link.
+                  </div>
                 </div>
               </div>
             </Motion.aside>

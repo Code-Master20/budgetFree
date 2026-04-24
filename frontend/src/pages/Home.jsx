@@ -6,6 +6,48 @@ import SiteChrome from "../components/SiteChrome";
 
 export default function Home() {
   const { user } = useSelector((state) => state.auth);
+  const customerBenefits = [
+    {
+      label: "Affordable finds",
+      value: "Compare",
+      note: "Browse budget-friendly products and shortlist what gives you the best value for your money.",
+    },
+    {
+      label: "Real feedback",
+      value: "Review",
+      note: "Read customer reviews and ratings before you open the final affiliate product link.",
+    },
+    {
+      label: "Rewards",
+      value: user ? "Earn" : "Unlock",
+      note: "Create an account to collect points from approved reviews and turn them into wallet balance.",
+    },
+  ];
+
+  const quickSteps = [
+    "Search products that fit your budget and compare the best options.",
+    "Open product pages to check price, rating, images, and review details.",
+    "Sign up to submit reviews, earn points, and request Amazon Pay gift cards.",
+  ];
+
+  const reasonsToUseBudgetFree = [
+    {
+      title: "Budget-first product discovery",
+      body: "BudgetFree helps shoppers find useful products without wasting time on overpriced or low-value listings.",
+    },
+    {
+      title: "Tracked partner-store purchases",
+      body: "When you open a partner ecommerce store through BudgetFree and complete a qualifying order within that store's affiliate attribution window, the purchase can count for affiliate tracking.",
+    },
+    {
+      title: "Rewards for genuine participation",
+      body: "When your reviews are approved, you earn points that can be converted into wallet balance and used for gift card requests.",
+    },
+    {
+      title: "One place for shopping activity",
+      body: "Your account keeps your searches, visited products, review status, wallet balance, and reward history together.",
+    },
+  ];
 
   return (
     <PageTransition className="page-wrap">
@@ -19,48 +61,40 @@ export default function Home() {
           >
             <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
               <div className="space-y-3">
-                <span className="eyebrow">Shop smarter</span>
+                <span className="eyebrow">Budget shopping rewards</span>
                 <div>
                   <h1 className="text-3xl font-semibold sm:text-5xl">
-                    Start at home, then jump into products.
+                    Find better products without overspending.
                   </h1>
                   <p className="section-copy mt-4 max-w-2xl">
-                    Use the products page to search, filter, and compare items
-                    before you open a product detail page.
+                    BudgetFree is for shoppers who want affordable products,
+                    honest reviews, and a simple way to earn points from
+                    approved participation that turn into wallet balance and
+                    Amazon Pay gift cards. Partner-store purchases opened
+                    through BudgetFree can also qualify for affiliate tracking
+                    when completed within the store's valid attribution window.
                   </p>
                 </div>
               </div>
 
               <div className="flex flex-wrap gap-3">
                 <Link className="primary-button" to="/products">
-                  View products
+                  Explore products
                 </Link>
                 {user ? (
                   <Link className="secondary-button" to="/dashboard">
-                    My account
+                    Open my dashboard
                   </Link>
-                ) : null}
+                ) : (
+                  <Link className="secondary-button" to="/register">
+                    Create free account
+                  </Link>
+                )}
               </div>
             </div>
 
             <div className="grid gap-4 md:grid-cols-3">
-              {[
-                {
-                  label: "Home",
-                  value: "Start",
-                  note: "Use home for quick direction and featured entry points.",
-                },
-                {
-                  label: "Products",
-                  value: "Compare",
-                  note: "Browse the full product list on its own dedicated page.",
-                },
-                {
-                  label: "Account",
-                  value: user ? "Ready" : "Optional",
-                  note: "Use your account for rewards, review status, and history.",
-                },
-              ].map((stat) => (
+              {customerBenefits.map((stat) => (
                 <Motion.div
                   key={stat.label}
                   className="glass-panel-strong rounded-[24px] p-5"
@@ -79,19 +113,16 @@ export default function Home() {
             <div className="grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
               <div className="glass-panel-strong rounded-[28px] p-5">
                 <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">
-                  How to use the site
+                  Why customers use BudgetFree
                 </p>
                 <div className="mt-4 grid gap-3 sm:grid-cols-3">
-                  {[
-                    "Start on home when you want a quick overview.",
-                    "Open products when you want filters and comparison tools.",
-                    "Open a product detail page when you are ready for specifics.",
-                  ].map((item) => (
+                  {reasonsToUseBudgetFree.map((item) => (
                     <div
-                      key={item}
+                      key={item.title}
                       className="rounded-[22px] bg-white/75 px-4 py-4 text-sm leading-6 text-slate-600"
                     >
-                      {item}
+                      <p className="font-semibold text-slate-900">{item.title}</p>
+                      <p className="mt-2">{item.body}</p>
                     </div>
                   ))}
                 </div>
@@ -99,21 +130,29 @@ export default function Home() {
 
               <div className="glass-panel rounded-[28px] p-5">
                 <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">
-                  Fast path
+                  How it works
                 </p>
                 <div className="mt-4 space-y-3">
-                  <div className="rounded-[22px] bg-white/70 px-4 py-4">
-                    <p className="text-sm font-semibold text-slate-900">
-                      Home for overview, products for comparison
+                  {quickSteps.map((item, index) => (
+                    <div
+                      key={item}
+                      className="rounded-[22px] bg-white/70 px-4 py-4"
+                    >
+                      <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">
+                        Step {index + 1}
+                      </p>
+                      <p className="mt-2 text-sm text-slate-600">{item}</p>
+                    </div>
+                  ))}
+                  <div className="rounded-[22px] border border-amber-200 bg-amber-50 px-4 py-4">
+                    <p className="text-xs font-semibold uppercase tracking-[0.22em] text-amber-700">
+                      Affiliate note
                     </p>
-                    <p className="mt-1 text-sm text-slate-600">
-                      You now have a separate products page for searching and
-                      filtering.
+                    <p className="mt-2 text-sm text-amber-800">
+                      Affiliate link validity is not the same for every
+                      ecommerce partner. Each store decides its own attribution
+                      window and qualifying purchase rules.
                     </p>
-                  </div>
-                  <div className="rounded-[22px] bg-white/70 px-4 py-4 text-sm text-slate-600">
-                    Product details still give you the final product information
-                    before opening the affiliate link.
                   </div>
                 </div>
               </div>

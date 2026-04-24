@@ -312,8 +312,8 @@ export default function Home() {
                 </div>
               </div>
 
-              <div className="flex flex-col items-start gap-4 lg:min-w-[320px] lg:items-end">
-                <div className="flex flex-wrap gap-3">
+              <div className="flex flex-col items-center gap-4 lg:min-w-[320px] lg:items-end">
+                <div className="flex flex-col items-center gap-3 lg:flex-row lg:justify-end">
                   <Link className="primary-button" to="/products">
                     Explore products
                   </Link>

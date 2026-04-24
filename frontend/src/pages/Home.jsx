@@ -144,16 +144,6 @@ export default function Home() {
                       <p className="mt-2 text-sm text-slate-600">{item}</p>
                     </div>
                   ))}
-                  <div className="rounded-[22px] border border-amber-200 bg-amber-50 px-4 py-4">
-                    <p className="text-xs font-semibold uppercase tracking-[0.22em] text-amber-700">
-                      Affiliate note
-                    </p>
-                    <p className="mt-2 text-sm text-amber-800">
-                      Affiliate link validity is not the same for every
-                      ecommerce partner. Each store decides its own attribution
-                      window and qualifying purchase rules.
-                    </p>
-                  </div>
                 </div>
               </div>
             </div>

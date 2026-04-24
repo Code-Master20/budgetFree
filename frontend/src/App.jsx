@@ -12,6 +12,7 @@ import Login from "./pages/Login";
 import Products from "./pages/Products";
 import ProductDetails from "./pages/ProductDetails";
 import Register from "./pages/Register";
+import VerifyEmail from "./pages/VerifyEmail";
 
 function ScrollToTop() {
   const location = useLocation();
@@ -33,6 +34,7 @@ function AppRoutes() {
         <Route path="/products" element={<Products />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/verify-email" element={<VerifyEmail />} />
         <Route path="/product/:id" element={<ProductDetails />} />
         <Route
           path="/admin"

@@ -5,6 +5,46 @@ import API from "../api";
 import PageTransition from "../components/PageTransition";
 import SiteChrome from "../components/SiteChrome";
 
+const getInboxDetails = (emailAddress) => {
+  const domain = String(emailAddress || "")
+    .trim()
+    .toLowerCase()
+    .split("@")[1];
+
+  const inboxMap = {
+    "gmail.com": {
+      label: "Open Gmail",
+      url: "https://mail.google.com/mail/u/0/#inbox",
+    },
+    "googlemail.com": {
+      label: "Open Gmail",
+      url: "https://mail.google.com/mail/u/0/#inbox",
+    },
+    "outlook.com": {
+      label: "Open Outlook",
+      url: "https://outlook.live.com/mail/0/inbox",
+    },
+    "hotmail.com": {
+      label: "Open Outlook",
+      url: "https://outlook.live.com/mail/0/inbox",
+    },
+    "live.com": {
+      label: "Open Outlook",
+      url: "https://outlook.live.com/mail/0/inbox",
+    },
+    "yahoo.com": {
+      label: "Open Yahoo Mail",
+      url: "https://mail.yahoo.com/",
+    },
+    "icloud.com": {
+      label: "Open iCloud Mail",
+      url: "https://www.icloud.com/mail",
+    },
+  };
+
+  return inboxMap[domain] || null;
+};
+
 export default function Register() {
   const [showPassword, setShowPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -21,11 +61,16 @@ export default function Register() {
     setFeedback(null);
 
     try {
+      const submittedEmail = form.email.trim().toLowerCase();
       const res = await API.post("/auth/register", form);
+      const inboxDetails = getInboxDetails(submittedEmail);
+
       setFeedback({
         tone: "success",
         message: res.data.message,
-        verifyLink: res.data.verifyLink,
+        email: submittedEmail,
+        inboxLabel: inboxDetails?.label || null,
+        inboxUrl: inboxDetails?.url || null,
       });
       setForm({
         name: "",
@@ -127,14 +172,21 @@ export default function Register() {
                 }`}
               >
                 <p>{feedback.message}</p>
-                {feedback.verifyLink ? (
+                {feedback.tone === "success" ? (
+                  <p className="mt-2">
+                    Check <span className="font-semibold">{feedback.email}</span> for
+                    your verification link. If you do not see it, check the spam
+                    folder too.
+                  </p>
+                ) : null}
+                {feedback.inboxUrl ? (
                   <a
-                    href={feedback.verifyLink}
+                    href={feedback.inboxUrl}
                     target="_blank"
                     rel="noreferrer"
                     className="mt-3 inline-flex font-semibold text-emerald-700 underline"
                   >
-                    Open verification link
+                    {feedback.inboxLabel}
                   </a>
                 ) : null}
               </div>

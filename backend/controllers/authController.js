@@ -18,6 +18,47 @@ const cookieOptions = {
   sameSite: "lax",
 };
 
+const stripTrailingSlash = (value) => value.replace(/\/+$/, "");
+
+const getApiBaseUrl = (req) => {
+  const requestBaseUrl = `${req.protocol}://${req.get("host")}`;
+
+  if (!isProduction) {
+    return stripTrailingSlash(requestBaseUrl);
+  }
+
+  const configuredBaseUrl = process.env.BASE_URL?.trim();
+
+  if (configuredBaseUrl) {
+    return stripTrailingSlash(configuredBaseUrl);
+  }
+
+  return stripTrailingSlash(requestBaseUrl);
+};
+
+const getFrontendBaseUrl = () => {
+  const configuredFrontendUrl =
+    process.env.FRONTEND_URL?.trim() || process.env.BASE_URL?.trim();
+
+  if (configuredFrontendUrl) {
+    return stripTrailingSlash(configuredFrontendUrl);
+  }
+
+  return "http://localhost:5173";
+};
+
+const buildVerificationRedirectUrl = (status, message) => {
+  const redirectUrl = new URL("/verify-email", `${getFrontendBaseUrl()}/`);
+
+  redirectUrl.searchParams.set("status", status);
+
+  if (message) {
+    redirectUrl.searchParams.set("message", message);
+  }
+
+  return redirectUrl.toString();
+};
+
 const generateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, {
     expiresIn: "7d",
@@ -36,39 +77,76 @@ const buildSafeUserPayload = (user) => ({
 
 exports.register = async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    const name = String(req.body.name || "").trim();
+    const email = String(req.body.email || "")
+      .trim()
+      .toLowerCase();
+    const password = String(req.body.password || "");
 
-    const userExists = await User.findOne({ email });
-    if (userExists) {
+    if (!name || !email || !password) {
       return res.status(400).json({
-        message: "User already exists",
+        message: "Name, email, and password are required",
       });
     }
 
+    const userExists = await User.findOne({ email });
     const hashedPassword = await bcrypt.hash(password, 10);
     const verificationToken = crypto.randomBytes(32).toString("hex");
+    const verifyLink = `${getApiBaseUrl(req)}/api/auth/verify/${verificationToken}`;
+    let user;
+    let createdNewUser = false;
+    let message = "Registered successfully. Please verify your email.";
 
-    const user = await User.create({
-      name,
-      email,
-      password: hashedPassword,
-      verificationToken,
-    });
+    if (userExists) {
+      if (userExists.isVerified) {
+        return res.status(400).json({
+          message: "User already exists",
+        });
+      }
 
-    const baseUrl = process.env.BASE_URL || "http://localhost:5000";
-    const verifyLink = `${baseUrl}/api/auth/verify/${verificationToken}`;
+      userExists.name = name;
+      userExists.password = hashedPassword;
+      userExists.verificationToken = verificationToken;
 
-    await sendEmail(
-      user.email,
-      "Verify Your Email",
-      `<p>Click below to verify your account:</p>
-       <a href="${verifyLink}">Verify Email</a>`,
-    );
+      user = await userExists.save();
+      message = "Your account is still unverified. We sent a fresh verification email.";
+    } else {
+      user = await User.create({
+        name,
+        email,
+        password: hashedPassword,
+        verificationToken,
+      });
+      createdNewUser = true;
+    }
 
-    res.json({
-      message: "Registered successfully. Please verify your email.",
-      verifyLink,
-    });
+    try {
+      await sendEmail(
+        user.email,
+        "Verify Your Email",
+        `<p>Welcome to BudgetFree, ${user.name}.</p>
+         <p>Click the button below to verify your email address and finish creating your account.</p>
+         <p>
+           <a href="${verifyLink}" style="display:inline-block;padding:12px 20px;border-radius:999px;background:#0f766e;color:#ffffff;text-decoration:none;font-weight:600;">
+             Verify Email
+           </a>
+         </p>
+         <p>If the button does not work, copy and paste this link into your browser:</p>
+         <p>${verifyLink}</p>`,
+      );
+    } catch (emailError) {
+      if (createdNewUser) {
+        await User.findByIdAndDelete(user._id).catch(() => null);
+      }
+
+      return res.status(502).json({
+        message:
+          emailError.message ||
+          "We could not send the verification email. Please try again.",
+      });
+    }
+
+    res.json({ message });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -81,7 +159,12 @@ exports.verifyEmail = async (req, res) => {
     });
 
     if (!user) {
-      return res.status(400).send("Invalid or expired token");
+      return res.redirect(
+        buildVerificationRedirectUrl(
+          "error",
+          "This verification link is invalid or has already been used.",
+        ),
+      );
     }
 
     user.isVerified = true;
@@ -89,9 +172,19 @@ exports.verifyEmail = async (req, res) => {
 
     await user.save();
 
-    res.send("Email verified successfully");
+    return res.redirect(
+      buildVerificationRedirectUrl(
+        "success",
+        "Your email has been verified. You can log in now.",
+      ),
+    );
   } catch (error) {
-    res.status(500).send("Verification failed");
+    return res.redirect(
+      buildVerificationRedirectUrl(
+        "error",
+        "We could not verify your email right now. Please try again.",
+      ),
+    );
   }
 };
 

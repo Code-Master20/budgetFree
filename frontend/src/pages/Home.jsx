@@ -131,42 +131,27 @@ export default function Home() {
     synthesizer.speak(utterance);
   };
 
+  const heroSpeech = {
+    en: "Budget shopping rewards. BudgetFree is for shoppers who want affordable products, honest reviews, and a simple way to earn points from approved participation that turn into wallet balance and Amazon Pay gift cards.",
+    hi: "बजट शॉपिंग रिवॉर्ड्स। BudgetFree उन खरीदारों के लिए है जो सस्ते और उपयोगी प्रोडक्ट, ईमानदार रिव्यू और approved participation के बाद points कमाने का आसान तरीका चाहते हैं, जिन्हें wallet balance और Amazon Pay gift cards में बदला जा सकता है।",
+    bn: "বাজেট শপিং রিওয়ার্ডস। BudgetFree তাদের জন্য, যারা সাশ্রয়ী পণ্য, সত্যিকারের রিভিউ এবং approved participation-এর পর পয়েন্ট অর্জনের সহজ উপায় চান, যেগুলো wallet balance এবং Amazon Pay gift card-এ বদলানো যায়।",
+  };
+
   const customerBenefits = [
     {
       label: "Affordable finds",
       value: "Compare",
       note: "Browse budget-friendly products and shortlist what gives you the best value for your money.",
-      speech: {
-        en: "Affordable finds. Compare. Browse budget-friendly products and shortlist what gives you the best value for your money.",
-        hi: "सस्ते विकल्प। तुलना करें। अपने बजट के हिसाब से प्रोडक्ट देखें और जो आपके पैसों का सबसे अच्छा मूल्य दें उन्हें चुनें।",
-        bn: "সাশ্রয়ী পছন্দ। তুলনা করুন। বাজেটের মধ্যে পণ্য দেখুন এবং যেগুলো আপনার টাকার সেরা মূল্য দেয় সেগুলো বেছে নিন।",
-      },
     },
     {
       label: "Real feedback",
       value: "Review",
       note: "Read customer reviews and ratings before you open the final affiliate product link.",
-      speech: {
-        en: "Real feedback. Review. Read customer reviews and ratings before you open the final product link.",
-        hi: "असल प्रतिक्रिया। रिव्यू। अंतिम प्रोडक्ट लिंक खोलने से पहले ग्राहकों के रिव्यू और रेटिंग पढ़ें।",
-        bn: "আসল মতামত। রিভিউ। শেষ পণ্যের লিংক খোলার আগে ক্রেতাদের রিভিউ ও রেটিং পড়ুন।",
-      },
     },
     {
       label: "Rewards",
       value: user ? "Earn" : "Unlock",
       note: "Create an account to collect points from approved reviews and turn them into wallet balance.",
-      speech: {
-        en: `Rewards. ${
-          user ? "Earn" : "Unlock"
-        }. Create an account to collect points from approved reviews and turn them into wallet balance.`,
-        hi: `रिवॉर्ड्स। ${
-          user ? "कमाएं" : "पाएं"
-        }। approved reviews से पॉइंट्स इकट्ठा करने और उन्हें wallet balance में बदलने के लिए अकाउंट बनाएं।`,
-        bn: `রিওয়ার্ডস। ${
-          user ? "অর্জন করুন" : "পান"
-        }। approved review থেকে পয়েন্ট জমা করতে এবং সেগুলো wallet balance-এ বদলাতে একটি অ্যাকাউন্ট খুলুন।`,
-      },
     },
   ];
 
@@ -180,65 +165,18 @@ export default function Home() {
     {
       title: "Budget-first product discovery",
       body: "BudgetFree helps shoppers find useful products without wasting time on overpriced or low-value listings.",
-      speech: {
-        en: "Budget-first product discovery. BudgetFree helps shoppers find useful products without wasting time on overpriced or low-value listings.",
-        hi: "बजट के हिसाब से प्रोडक्ट खोजें। BudgetFree खरीदारों को महंगे या कम वैल्यू वाले प्रोडक्ट्स पर समय बर्बाद किए बिना उपयोगी प्रोडक्ट खोजने में मदद करता है।",
-        bn: "বাজেট অনুযায়ী পণ্য খুঁজুন। BudgetFree ক্রেতাদের অতিরিক্ত দামী বা কম মূল্যবান তালিকায় সময় নষ্ট না করে দরকারি পণ্য খুঁজে পেতে সাহায্য করে।",
-      },
     },
     {
       title: "Buy, review, and earn points",
       body: "If you visit a relevant ecommerce website through a BudgetFree product link and buy that specific product, come back after the product is delivered and write a review on the same product page. Once your review is approved, you get reward points.",
-      speech: {
-        en: "Buy, review, and earn points. If you visit a relevant ecommerce website through a BudgetFree product link and buy that specific product, come back after the product is delivered and write a review on the same product page. Once your review is approved, you get reward points.",
-        hi: "खरीदें, रिव्यू लिखें और पॉइंट्स कमाएं। अगर आप BudgetFree के किसी प्रोडक्ट लिंक से किसी संबंधित ईकॉमर्स वेबसाइट पर जाते हैं और वही प्रोडक्ट खरीदते हैं, तो डिलीवरी मिलने के बाद उसी प्रोडक्ट पेज पर वापस आकर रिव्यू लिखें। आपका रिव्यू approve होने पर आपको reward points मिलते हैं।",
-        bn: "কিনুন, রিভিউ দিন এবং পয়েন্ট অর্জন করুন। যদি আপনি BudgetFree-এর কোনো পণ্যের লিংক থেকে একটি প্রাসঙ্গিক ইকমার্স ওয়েবসাইটে যান এবং সেই নির্দিষ্ট পণ্যটি কেনেন, তবে ডেলিভারি পাওয়ার পরে একই পণ্যের পেজে ফিরে এসে রিভিউ লিখুন। আপনার রিভিউ approve হলে আপনি reward points পাবেন।",
-      },
     },
     {
       title: "Rewards for genuine participation",
       body: "When your reviews are approved, you earn points that can be converted into wallet balance and used for gift card requests.",
-      speech: {
-        en: "Rewards for genuine participation. When your reviews are approved, you earn points that can be converted into wallet balance and used for gift card requests.",
-        hi: "सही भागीदारी पर रिवॉर्ड्स। जब आपके रिव्यू approve हो जाते हैं, तो आपको पॉइंट्स मिलते हैं जिन्हें wallet balance में बदला जा सकता है और gift card requests के लिए इस्तेमाल किया जा सकता है।",
-        bn: "সত্যিকারের অংশগ্রহণের জন্য রিওয়ার্ড। আপনার রিভিউ approve হলে আপনি পয়েন্ট পান, যা wallet balance-এ বদলানো যায় এবং gift card request-এর জন্য ব্যবহার করা যায়।",
-      },
     },
     {
       title: "One place for shopping activity",
       body: "Your account keeps your searches, visited products, review status, wallet balance, and reward history together.",
-      speech: {
-        en: "One place for shopping activity. Your account keeps your searches, visited products, review status, wallet balance, and reward history together.",
-        hi: "शॉपिंग गतिविधि के लिए एक ही जगह। आपका अकाउंट आपकी searches, देखे गए products, review status, wallet balance और reward history को एक साथ रखता है।",
-        bn: "সব শপিং কাজের জন্য এক জায়গা। আপনার অ্যাকাউন্টে search history, দেখা পণ্য, review status, wallet balance এবং reward history একসাথে রাখা থাকে।",
-      },
-    },
-  ];
-
-  const spokenQuickSteps = [
-    {
-      text: quickSteps[0],
-      speech: {
-        en: "Step 1. Search products that fit your budget and compare the best options.",
-        hi: "स्टेप 1। अपने बजट के हिसाब से प्रोडक्ट खोजें और सबसे अच्छे विकल्पों की तुलना करें।",
-        bn: "ধাপ ১। আপনার বাজেট অনুযায়ী পণ্য খুঁজুন এবং সেরা বিকল্পগুলোর তুলনা করুন।",
-      },
-    },
-    {
-      text: quickSteps[1],
-      speech: {
-        en: "Step 2. Open product pages to check price, rating, images, and review details.",
-        hi: "स्टेप 2। कीमत, रेटिंग, तस्वीरें और रिव्यू की जानकारी देखने के लिए प्रोडक्ट पेज खोलें।",
-        bn: "ধাপ ২। দাম, রেটিং, ছবি এবং রিভিউর তথ্য দেখতে পণ্যের পেজ খুলুন।",
-      },
-    },
-    {
-      text: quickSteps[2],
-      speech: {
-        en: "Step 3. Sign up to submit reviews, earn points, and request Amazon Pay gift cards.",
-        hi: "स्टेप 3। रिव्यू भेजने, पॉइंट्स कमाने और Amazon Pay gift cards के लिए request करने हेतु साइन अप करें।",
-        bn: "ধাপ ৩। রিভিউ জমা দিতে, পয়েন্ট অর্জন করতে এবং Amazon Pay gift card request করতে সাইন আপ করুন।",
-      },
     },
   ];
 
@@ -267,6 +205,13 @@ export default function Home() {
                     through BudgetFree can also qualify for affiliate tracking
                     when completed within the store's valid attribution window.
                   </p>
+                  <SpeakUpButtons
+                    activeSpeechId={activeSpeechId}
+                    cardId="hero-budget-shopping-rewards"
+                    isSpeechSupported={isSpeechSupported}
+                    onSpeak={handleSpeak}
+                    speech={heroSpeech}
+                  />
                 </div>
               </div>
 
@@ -299,13 +244,6 @@ export default function Home() {
                     {stat.value}
                   </p>
                   <p className="mt-2 text-sm text-slate-600">{stat.note}</p>
-                  <SpeakUpButtons
-                    activeSpeechId={activeSpeechId}
-                    cardId={`benefit-${stat.label}`}
-                    isSpeechSupported={isSpeechSupported}
-                    onSpeak={handleSpeak}
-                    speech={stat.speech}
-                  />
                 </Motion.div>
               ))}
             </div>
@@ -323,13 +261,6 @@ export default function Home() {
                     >
                       <p className="font-semibold text-slate-900">{item.title}</p>
                       <p className="mt-2">{item.body}</p>
-                      <SpeakUpButtons
-                        activeSpeechId={activeSpeechId}
-                        cardId={`reason-${item.title}`}
-                        isSpeechSupported={isSpeechSupported}
-                        onSpeak={handleSpeak}
-                        speech={item.speech}
-                      />
                     </div>
                   ))}
                 </div>
@@ -340,22 +271,15 @@ export default function Home() {
                   How it works
                 </p>
                 <div className="mt-4 space-y-3">
-                  {spokenQuickSteps.map((item, index) => (
+                  {quickSteps.map((item, index) => (
                     <div
-                      key={item.text}
+                      key={item}
                       className="rounded-[22px] bg-white/70 px-4 py-4"
                     >
                       <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">
                         Step {index + 1}
                       </p>
-                      <p className="mt-2 text-sm text-slate-600">{item.text}</p>
-                      <SpeakUpButtons
-                        activeSpeechId={activeSpeechId}
-                        cardId={`step-${index + 1}`}
-                        isSpeechSupported={isSpeechSupported}
-                        onSpeak={handleSpeak}
-                        speech={item.speech}
-                      />
+                      <p className="mt-2 text-sm text-slate-600">{item}</p>
                     </div>
                   ))}
                 </div>

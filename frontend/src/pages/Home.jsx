@@ -285,7 +285,18 @@ export default function Home() {
             transition={{ duration: 0.35 }}
             className="glass-panel flex flex-col gap-5 rounded-[32px] px-5 py-5 sm:px-7"
           >
-            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div className="flex flex-col gap-4">
+              <div className="flex justify-end">
+                <CompactSpeakUpMenu
+                  activeSpeechId={activeSpeechId}
+                  cardId="hero-budget-shopping-rewards"
+                  isSpeechSupported={isSpeechSupported}
+                  onSpeak={handleSpeak}
+                  speech={heroSpeech}
+                />
+              </div>
+
+              <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
               <div className="space-y-3">
                 <span className="eyebrow">Budget shopping rewards</span>
                 <div>
@@ -304,14 +315,6 @@ export default function Home() {
               </div>
 
               <div className="flex flex-col items-start gap-4 lg:min-w-[320px] lg:items-end">
-                <CompactSpeakUpMenu
-                  activeSpeechId={activeSpeechId}
-                  cardId="hero-budget-shopping-rewards"
-                  isSpeechSupported={isSpeechSupported}
-                  onSpeak={handleSpeak}
-                  speech={heroSpeech}
-                />
-
                 <div className="flex flex-wrap gap-3">
                   <Link className="primary-button" to="/products">
                     Explore products
@@ -327,6 +330,7 @@ export default function Home() {
                   )}
                 </div>
               </div>
+            </div>
             </div>
 
             <div className="grid gap-4 md:grid-cols-3">

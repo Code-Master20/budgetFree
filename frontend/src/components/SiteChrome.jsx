@@ -34,14 +34,16 @@ export default function SiteChrome({ children }) {
     () => {
       if (!user) {
         return [
-          { to: "/", label: "Shop" },
+          { to: "/", label: "Home" },
+          { to: "/products", label: "Products" },
           { to: "/login", label: "Login" },
           { to: "/register", label: "Sign Up" },
         ];
       }
 
       const items = [
-        { to: "/", label: "Shop" },
+        { to: "/", label: "Home" },
+        { to: "/products", label: "Products" },
         { to: "/dashboard", label: "My Account" },
       ];
 
@@ -149,7 +151,13 @@ export default function SiteChrome({ children }) {
             </p>
             <div className="flex flex-wrap gap-2">
               <Link className="secondary-button px-4 py-2 text-xs" to="/">
-                Shop products
+                Home
+              </Link>
+              <Link
+                className="secondary-button px-4 py-2 text-xs"
+                to="/products"
+              >
+                Products
               </Link>
               {user ? (
                 <>

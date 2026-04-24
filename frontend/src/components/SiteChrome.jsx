@@ -94,7 +94,7 @@ export default function SiteChrome({ children }) {
                     budgetFree
                   </p>
                   <p className="text-xs uppercase tracking-[0.24em] text-slate-500">
-                    Budget shopping rewards
+                    Earn while buying
                   </p>
                 </div>
               </Link>

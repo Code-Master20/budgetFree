@@ -36,8 +36,8 @@ export default function Home() {
       body: "BudgetFree helps shoppers find useful products without wasting time on overpriced or low-value listings.",
     },
     {
-      title: "Tracked partner-store purchases",
-      body: "When you open a partner ecommerce store through BudgetFree and complete a qualifying order within that store's affiliate attribution window, the purchase can count for affiliate tracking.",
+      title: "Buy, review, and earn points",
+      body: "If you visit a relevant ecommerce website through a BudgetFree product link and buy that specific product, come back after the product is delivered and write a review on the same product page. Once your review is approved, you get reward points.",
     },
     {
       title: "Rewards for genuine participation",

@@ -153,10 +153,10 @@ export default function ProductDetails() {
                   Rs {product.price ?? "N/A"}
                 </p>
                 <p className="mt-4 text-sm leading-6 text-slate-600">
-                  Ready to continue on the store page? Open the affiliate link
-                  in a new tab when you are comfortable with the details here.
-                  If you place a qualifying order, affiliate tracking depends on
-                  that partner store's attribution window and terms.
+                  Ready to continue? Review the details here, then continue to
+                  the source store in a new tab whenever you are comfortable.
+                  Pricing, stock, delivery, and final checkout terms are set by
+                  the source store.
                 </p>
                 <a
                   href={product.affiliateLink}
@@ -164,7 +164,7 @@ export default function ProductDetails() {
                   rel="noreferrer"
                   className="primary-button mt-6 w-full"
                 >
-                  Open affiliate link
+                  Buy from source
                 </a>
               </div>
 
@@ -201,16 +201,16 @@ export default function ProductDetails() {
 
               <div className="glass-panel-strong rounded-[34px] p-6">
                 <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">
-                  Affiliate note
+                  Store note
                 </p>
                 <div className="mt-4 space-y-3 text-sm leading-6 text-slate-600">
                   <div className="rounded-[22px] bg-white/70 px-4 py-4">
-                    BudgetFree may earn from qualifying purchases made after you
-                    open a partner-store link from this page.
+                    Disclosure: BudgetFree may earn a commission if you buy
+                    through a store link on this page.
                   </div>
                   <div className="rounded-[22px] bg-white/70 px-4 py-4">
-                    The valid tracking duration is set by the ecommerce partner,
-                    so there is no single timing rule for every affiliate link.
+                    Availability, pricing, offers, and delivery timelines are
+                    controlled by the source store and can change at any time.
                   </div>
                 </div>
               </div>

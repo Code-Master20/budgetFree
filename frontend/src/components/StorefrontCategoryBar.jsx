@@ -186,7 +186,7 @@ export default function StorefrontCategoryBar() {
               aria-hidden="true"
               className={`inline-block text-[10px] leading-none transition ${isEyeTieMenuOpen ? "rotate-180" : ""}`}
             >
-              v
+              {"\u25BC"}
             </span>
           </span>
         </button>
@@ -225,7 +225,7 @@ export default function StorefrontCategoryBar() {
               aria-hidden="true"
               className={`inline-block text-[10px] leading-none transition ${isLaptopMenuOpen ? "rotate-180" : ""}`}
             >
-              v
+              {"\u25BC"}
             </span>
           </span>
         </button>
@@ -264,7 +264,7 @@ export default function StorefrontCategoryBar() {
               aria-hidden="true"
               className={`inline-block text-[10px] leading-none transition ${isMobileMenuOpen ? "rotate-180" : ""}`}
             >
-              v
+              {"\u25BC"}
             </span>
           </span>
         </button>

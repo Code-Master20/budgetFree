@@ -83,6 +83,7 @@ export default function ProductCatalog({
   subtitle = "Filter by category, search by name, and compare price and rating before opening a product page.",
   eyebrow = "Products",
   showCategoryFilters = true,
+  leadingControl = null,
   emptyStateTitle = "Nothing matches yet",
   emptyStateCopy = "Try another keyword or category to find more products.",
   staticBadge = "Focused picks",
@@ -215,7 +216,9 @@ export default function ProductCatalog({
 
       <div className="mt-5 flex flex-col gap-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          {showCategoryFilters ? (
+          {leadingControl ? (
+            leadingControl
+          ) : showCategoryFilters ? (
             <div className="flex flex-wrap gap-2">
               {categories.map((category) => {
                 const isActive = category === activeCategory;

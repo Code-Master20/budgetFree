@@ -15,25 +15,27 @@ export default function Products() {
             transition={{ duration: 0.35 }}
             className="glass-panel flex flex-col gap-5 rounded-[32px] px-5 py-5 sm:px-7"
           >
-            <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-              <div className="max-w-3xl">
-                <span className="eyebrow">Products</span>
-                <h1 className="mt-3 text-3xl font-semibold sm:text-5xl">
-                  Compare products before you buy.
-                </h1>
-                <p className="section-copy mt-4 max-w-2xl">
-                  Search by name, filter by category, and jump straight into the
-                  laptop collections you actually want to test.
-                </p>
-              </div>
-
-              <div className="flex flex-wrap items-center gap-3">
-                <LaptopDropdown />
-              </div>
+            <div className="max-w-3xl">
+              <span className="eyebrow">Products</span>
+              <h1 className="mt-3 text-3xl font-semibold sm:text-5xl">
+                Compare products before you buy.
+              </h1>
+              <p className="section-copy mt-4 max-w-2xl">
+                Search by name, review price and rating, and jump straight into
+                the laptop collections you actually want to test.
+              </p>
             </div>
           </Motion.header>
 
-          <ProductCatalog />
+          <ProductCatalog
+            requestParams={{ search: "laptop" }}
+            showCategoryFilters={false}
+            leadingControl={<LaptopDropdown />}
+            title="Browse and compare laptops"
+            subtitle="Start with laptop-focused results and use the dropdown for students, coding, or gaming collections."
+            emptyStateTitle="No laptops found yet"
+            emptyStateCopy="Add or seed laptop products to populate this catalog."
+          />
         </div>
       </SiteChrome>
     </PageTransition>

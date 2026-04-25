@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useSearchParams } from "react-router-dom";
 
 const CATEGORY_LINKS = [
-  { label: "Mobiles", to: "/products?category=Mobiles" },
   { label: "Eye-tie", to: "/products?category=Eye-tie" },
   { label: "Clothes", to: "/products?category=Clothes" },
 ];
@@ -34,12 +33,62 @@ const LAPTOP_LINKS = [
   },
 ];
 
+const MOBILE_LINKS = [
+  {
+    label: "All",
+    to: "/products?category=Mobiles",
+  },
+  {
+    label: "Best Gaming Mobiles",
+    to: "/products/best-gaming-mobiles",
+  },
+  {
+    label: "Mobiles with Best Camera",
+    to: "/products/mobiles-with-best-camera",
+  },
+  {
+    label: "All Features Packed Mobiles",
+    to: "/products/all-features-packed-mobiles",
+  },
+  {
+    label: "Best Mobiles Under 12000 Budgets",
+    to: "/products/best-mobiles-under-12000-budget",
+  },
+  {
+    label: "Best Mobiles Under 15000 Budgets",
+    to: "/products/best-mobiles-under-15000-budget",
+  },
+  {
+    label: "Best Mobiles with High Speed CPU",
+    to: "/products/best-mobiles-with-high-speed-cpu",
+  },
+  {
+    label: "Best Battery Mobiles",
+    to: "/products/best-battery-mobiles",
+  },
+  {
+    label: "Best 5G Mobiles",
+    to: "/products/best-5g-mobiles",
+  },
+];
+
 export default function StorefrontCategoryBar() {
   const [isLaptopMenuOpen, setIsLaptopMenuOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [searchParams] = useSearchParams();
   const location = useLocation();
   const dropdownRef = useRef(null);
   const activeCategory = searchParams.get("category") || "All";
+  const mobileRoutes = new Set([
+    "/products/best-gaming-mobiles",
+    "/products/mobiles-with-best-camera",
+    "/products/all-features-packed-mobiles",
+    "/products/best-mobiles-under-12000-budget",
+    "/products/best-mobiles-under-15000-budget",
+    "/products/best-mobiles-with-high-speed-cpu",
+    "/products/best-battery-mobiles",
+    "/products/best-5g-mobiles",
+  ]);
   const isLaptopRouteActive =
     activeCategory === "Laptops" ||
     location.pathname === "/products/laptops-for-students" ||
@@ -47,9 +96,12 @@ export default function StorefrontCategoryBar() {
     location.pathname === "/products/laptops-for-gaming" ||
     location.pathname === "/products/best-laptops-under-15000-budget" ||
     location.pathname === "/products/best-laptops-under-25000-budget";
+  const isMobileRouteActive =
+    activeCategory === "Mobiles" || mobileRoutes.has(location.pathname);
 
   useEffect(() => {
     setIsLaptopMenuOpen(false);
+    setIsMobileMenuOpen(false);
   }, [location.pathname, location.search]);
 
   useEffect(() => {
@@ -99,6 +151,44 @@ export default function StorefrontCategoryBar() {
           <div className="glass-panel-strong absolute left-0 top-full z-20 mt-3 min-w-[280px] rounded-[24px] p-3 shadow-[0_18px_42px_rgba(16,24,31,0.16)]">
             <div className="grid gap-2">
               {LAPTOP_LINKS.map((item) => (
+                <Link
+                  key={item.to}
+                  to={item.to}
+                  className="secondary-button rounded-[18px] px-4 py-3 text-left text-sm"
+                >
+                  {item.label}
+                </Link>
+              ))}
+            </div>
+          </div>
+        ) : null}
+      </div>
+
+      <div className="relative">
+        <button
+          type="button"
+          onClick={() => {
+            setIsLaptopMenuOpen(false);
+            setIsMobileMenuOpen((current) => !current);
+          }}
+          aria-expanded={isMobileMenuOpen}
+          className={linkClassName(isMobileRouteActive)}
+        >
+          <span className="flex items-center gap-2">
+            <span>Mobiles</span>
+            <span
+              aria-hidden="true"
+              className={`inline-block text-[10px] leading-none transition ${isMobileMenuOpen ? "rotate-180" : ""}`}
+            >
+              ▼
+            </span>
+          </span>
+        </button>
+
+        {isMobileMenuOpen ? (
+          <div className="glass-panel-strong absolute left-0 top-full z-20 mt-3 min-w-[300px] rounded-[24px] p-3 shadow-[0_18px_42px_rgba(16,24,31,0.16)]">
+            <div className="grid gap-2">
+              {MOBILE_LINKS.map((item) => (
                 <Link
                   key={item.to}
                   to={item.to}

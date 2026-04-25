@@ -12,6 +12,7 @@ export default function LaptopCollectionPage({
   callout,
   emptyStateTitle,
   emptyStateCopy,
+  staticBadge = "Laptop picks",
 }) {
   return (
     <PageTransition className="page-wrap">
@@ -47,7 +48,7 @@ export default function LaptopCollectionPage({
             subtitle={subtitle}
             showCategoryFilters={false}
             leadingControl={<StorefrontCategoryBar />}
-            staticBadge="Laptop picks"
+            staticBadge={staticBadge}
             emptyStateTitle={emptyStateTitle}
             emptyStateCopy={emptyStateCopy}
           />

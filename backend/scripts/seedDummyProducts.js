@@ -95,6 +95,50 @@ const LAPTOP_USE_CASES = [
     pro: "Handles entry-level gaming and casual entertainment better than a basic office laptop",
   },
 ];
+const MOBILE_USE_CASES = [
+  {
+    label: "Gaming",
+    description:
+      "Built for smoother frame rates, better touch response, and longer gaming sessions.",
+    feature: "Gaming mobile tuning",
+    pro: "Better suited for gaming and sustained performance",
+  },
+  {
+    label: "Camera",
+    description:
+      "Focused on camera quality, photo detail, and stronger day-to-day photography results.",
+    feature: "Camera-focused mobile profile",
+    pro: "More attractive for buyers who care about camera results",
+  },
+  {
+    label: "All Features",
+    description:
+      "Aims to balance display, battery, camera, performance, and connectivity in one all-round package.",
+    feature: "All features packed setup",
+    pro: "More complete all-round spec balance",
+  },
+  {
+    label: "CPU",
+    description:
+      "Highlights faster processing, smoother multitasking, and better everyday app responsiveness.",
+    feature: "High speed CPU profile",
+    pro: "More appealing for CPU-heavy multitasking",
+  },
+  {
+    label: "Battery",
+    description:
+      "Geared toward longer battery backup, heavier daily use, and fewer charging breaks.",
+    feature: "Battery-focused mobile setup",
+    pro: "Stronger battery endurance for long days",
+  },
+  {
+    label: "5G",
+    description:
+      "Promotes better connectivity, modern network support, and a more future-ready mobile setup.",
+    feature: "5G-ready mobile setup",
+    pro: "Good fit for buyers looking for 5G support",
+  },
+];
 
 const laptopVariants = [
   {
@@ -283,7 +327,7 @@ const phoneVariants = [
   {
     brand: "Redmi",
     line: "Value Note 5G",
-    price: 13999,
+    price: 11999,
     rating: 4.4,
     memory: "6GB + 128GB",
     camera: "50MP AI camera",
@@ -328,7 +372,7 @@ const phoneVariants = [
   {
     brand: "Infinix",
     line: "Note Smart",
-    price: 11999,
+    price: 10999,
     rating: 4.0,
     memory: "8GB + 128GB",
     camera: "108MP main camera",
@@ -337,7 +381,7 @@ const phoneVariants = [
   {
     brand: "Lava",
     line: "Agni Mini",
-    price: 12999,
+    price: 11499,
     rating: 4.0,
     memory: "6GB + 128GB",
     camera: "50MP primary lens",
@@ -346,7 +390,7 @@ const phoneVariants = [
   {
     brand: "Nokia",
     line: "G Campus",
-    price: 10999,
+    price: 9999,
     rating: 3.9,
     memory: "4GB + 128GB",
     camera: "50MP triple camera",
@@ -555,16 +599,28 @@ const createLaptopProducts = () =>
 
 const createPhoneProducts = () =>
   createVariantCopies(phoneVariants, (item, index, batch, batchIndex) => {
+    const useCase = MOBILE_USE_CASES[(index + batchIndex) % MOBILE_USE_CASES.length];
     const slug = slugify(`${item.brand}-${item.line}-${batch.label}-${index + 1}`);
     return {
-      title: `${item.brand} ${item.line} ${batch.label} Smartphone`,
-      description: `Dummy phone listing for catalog and search testing with ${item.memory}, ${item.camera}, and ${item.battery}. ${batch.label} edition helps create a richer storefront.`,
+      title: `${item.brand} ${item.line} ${batch.label} Mobile for ${useCase.label}`,
+      description: `Dummy mobile listing for catalog and search testing with ${item.memory}, ${item.camera}, and ${item.battery}. ${useCase.description} ${batch.label} edition helps create a richer storefront.`,
       category: "Mobiles",
       price: item.price + batch.priceDelta,
       affiliateLink: buildAffiliateLink(slug),
       images: [buildImage(`phone-${index + 1}-${batchIndex + 1}`)],
-      features: [item.memory, item.camera, item.battery, "Dual SIM 5G", `${batch.label} model`],
-      pros: ["Good value pricing", "Strong battery life", "Reliable daily performance"],
+      features: [
+        item.memory,
+        item.camera,
+        item.battery,
+        "Dual SIM 5G",
+        `${batch.label} model`,
+        useCase.feature,
+      ],
+      pros: [
+        useCase.pro,
+        "Strong day-to-day value",
+        "Reliable daily performance",
+      ],
       cons: ["Mid-range low-light camera", "Plastic frame"],
       rating: clampRating(item.rating + batch.ratingDelta),
     };

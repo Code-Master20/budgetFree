@@ -11,8 +11,6 @@ const SEARCHABLE_FIELDS = [
   "description",
   "category",
   "features",
-  "pros",
-  "cons",
 ];
 const SEARCH_STOP_WORDS = new Set([
   "a",

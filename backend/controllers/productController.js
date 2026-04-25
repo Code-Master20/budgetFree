@@ -2,13 +2,81 @@ const Product = require("../models/Product");
 const { fetchAmazonProduct } = require("../services/amazonProductImportService");
 
 const DEFAULT_PAGE_SIZE = 10;
+const MAX_PAGE_SIZE = 100;
+const SEARCHABLE_FIELDS = [
+  "title",
+  "description",
+  "category",
+  "features",
+  "pros",
+  "cons",
+];
+const SEARCH_STOP_WORDS = new Set([
+  "a",
+  "an",
+  "and",
+  "best",
+  "buy",
+  "for",
+  "from",
+  "in",
+  "is",
+  "of",
+  "on",
+  "or",
+  "product",
+  "products",
+  "the",
+  "to",
+  "with",
+]);
 
-const buildSearchQuery = (search) => {
+const escapeRegex = (value) =>
+  value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+const normalizeSearchTerm = (value) => {
+  const normalizedValue = value.trim().toLowerCase();
+
+  if (normalizedValue.length > 3 && normalizedValue.endsWith("s")) {
+    return normalizedValue.slice(0, -1);
+  }
+
+  return normalizedValue;
+};
+
+const extractSearchTerms = (search) => {
   if (!search) {
+    return [];
+  }
+
+  const rawTerms = search
+    .split(/[^a-z0-9]+/i)
+    .map(normalizeSearchTerm)
+    .filter((term) => term.length >= 2);
+
+  const meaningfulTerms = rawTerms.filter((term) => !SEARCH_STOP_WORDS.has(term));
+  const selectedTerms = meaningfulTerms.length ? meaningfulTerms : rawTerms;
+
+  return [...new Set(selectedTerms)];
+};
+
+const buildSearchQuery = (search, fields = SEARCHABLE_FIELDS) => {
+  const terms = extractSearchTerms(search);
+
+  if (!terms.length) {
     return null;
   }
 
-  return { $regex: search, $options: "i" };
+  return {
+    $and: terms.map((term) => ({
+      $or: fields.map((field) => ({
+        [field]: {
+          $regex: escapeRegex(term),
+          $options: "i",
+        },
+      })),
+    })),
+  };
 };
 
 const buildPaginatedResponse = async ({
@@ -19,23 +87,30 @@ const buildPaginatedResponse = async ({
   sort = { createdAt: -1 },
 }) => {
   const normalizedPage = Math.max(Number(page) || 1, 1);
-  const skip = (normalizedPage - 1) * limit;
+  const normalizedLimit = Math.min(
+    Math.max(Number(limit) || DEFAULT_PAGE_SIZE, 1),
+    MAX_PAGE_SIZE,
+  );
+  const skip = (normalizedPage - 1) * normalizedLimit;
 
-  const products = await Product.find(query).skip(skip).limit(limit).sort(sort);
+  const products = await Product.find(query)
+    .skip(skip)
+    .limit(normalizedLimit)
+    .sort(sort);
   const total = await Product.countDocuments(query);
 
   return res.json({
     products,
     total,
     page: normalizedPage,
-    pages: Math.ceil(total / limit),
+    pages: Math.ceil(total / normalizedLimit),
   });
 };
 
 // @desc Get all products (with filters)
 exports.getProducts = async (req, res) => {
   try {
-    const { category, minPrice, maxPrice, search, page = 1 } = req.query;
+    const { category, minPrice, maxPrice, search, page = 1, limit } = req.query;
 
     let query = {};
 
@@ -50,13 +125,14 @@ exports.getProducts = async (req, res) => {
 
     const searchQuery = buildSearchQuery(search);
     if (searchQuery) {
-      query.title = searchQuery;
+      query.$and = [...(query.$and || []), searchQuery];
     }
 
     return buildPaginatedResponse({
       res,
       query,
       page,
+      limit,
       sort: { createdAt: -1 },
     });
   } catch (error) {
@@ -67,7 +143,7 @@ exports.getProducts = async (req, res) => {
 // @desc Get best student laptops between Rs 16,000 and Rs 25,000
 exports.getBestStudentLaptopsUnder16000To25000 = async (req, res) => {
   try {
-    const { search, page = 1 } = req.query;
+    const { search, page = 1, limit } = req.query;
     const searchQuery = buildSearchQuery(search);
 
     const query = {
@@ -80,21 +156,14 @@ exports.getBestStudentLaptopsUnder16000To25000 = async (req, res) => {
     };
 
     if (searchQuery) {
-      query.$and = [
-        {
-          $or: [
-            { title: searchQuery },
-            { description: searchQuery },
-            { category: searchQuery },
-          ],
-        },
-      ];
+      query.$and = [...(query.$and || []), searchQuery];
     }
 
     return buildPaginatedResponse({
       res,
       query,
       page,
+      limit,
       sort: { rating: -1, price: 1, createdAt: -1 },
     });
   } catch (error) {

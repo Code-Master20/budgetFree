@@ -5,6 +5,26 @@ import { Link } from "react-router-dom";
 import API from "../api";
 import { fetchProducts } from "../redux/productSlice";
 
+const SEARCH_STOP_WORDS = new Set([
+  "a",
+  "an",
+  "and",
+  "best",
+  "buy",
+  "for",
+  "from",
+  "in",
+  "is",
+  "of",
+  "on",
+  "or",
+  "product",
+  "products",
+  "the",
+  "to",
+  "with",
+]);
+
 const itemVariants = {
   hidden: { opacity: 0, y: 24 },
   visible: (index) => ({
@@ -36,6 +56,26 @@ function ProductSkeleton({ index }) {
   );
 }
 
+function normalizeSearchTerm(value) {
+  const normalizedValue = value.trim().toLowerCase();
+
+  if (normalizedValue.length > 3 && normalizedValue.endsWith("s")) {
+    return normalizedValue.slice(0, -1);
+  }
+
+  return normalizedValue;
+}
+
+function extractSearchTerms(search) {
+  const rawTerms = search
+    .split(/[^a-z0-9]+/i)
+    .map(normalizeSearchTerm)
+    .filter((term) => term.length >= 2);
+
+  const meaningfulTerms = rawTerms.filter((term) => !SEARCH_STOP_WORDS.has(term));
+  return meaningfulTerms.length ? meaningfulTerms : rawTerms;
+}
+
 export default function ProductCatalog({
   endpoint = "/products",
   title = "Browse and compare products",
@@ -56,9 +96,16 @@ export default function ProductCatalog({
 
   const { products, loading, error } = useSelector((state) => state.products);
   const { user } = useSelector((state) => state.auth);
+  const normalizedSearch = deferredSearch.trim();
+  const searchTerms = extractSearchTerms(normalizedSearch);
 
   useEffect(() => {
-    dispatch(fetchProducts({ endpoint }));
+    dispatch(
+      fetchProducts({
+        endpoint,
+        params: { limit: 100 },
+      }),
+    );
   }, [dispatch, endpoint]);
 
   useEffect(() => {
@@ -70,7 +117,7 @@ export default function ProductCatalog({
       return;
     }
 
-    const normalizedQuery = deferredSearch.trim();
+    const normalizedQuery = normalizedSearch;
 
     if (
       normalizedQuery.length < 2 ||
@@ -92,7 +139,7 @@ export default function ProductCatalog({
     return () => {
       window.clearTimeout(timeoutId);
     };
-  }, [deferredSearch, user]);
+  }, [normalizedSearch, user]);
 
   const categories = [
     "All",
@@ -105,10 +152,19 @@ export default function ProductCatalog({
         !showCategoryFilters ||
         activeCategory === "All" ||
         product.category === activeCategory;
-      const haystack = `${product.title} ${product.description || ""}`.toLowerCase();
-      const matchesSearch = haystack.includes(
-        deferredSearch.trim().toLowerCase(),
+      const haystack = normalizeSearchTerm(
+        [
+          product.title,
+          product.description,
+          product.category,
+          ...(product.features || []),
+          ...(product.pros || []),
+          ...(product.cons || []),
+        ]
+          .filter(Boolean)
+          .join(" "),
       );
+      const matchesSearch = searchTerms.every((term) => haystack.includes(term));
 
       return matchesCategory && matchesSearch;
     })
@@ -195,7 +251,7 @@ export default function ProductCatalog({
             </label>
 
             {((showCategoryFilters && activeCategory !== "All") ||
-              deferredSearch) && (
+              normalizedSearch) && (
               <button
                 type="button"
                 onClick={() => {
@@ -219,12 +275,12 @@ export default function ProductCatalog({
               {filteredProducts.length}
             </span>{" "}
             products
-            {deferredSearch ? (
+            {normalizedSearch ? (
               <>
                 {" "}
                 for{" "}
                 <span className="font-semibold text-slate-900">
-                  "{deferredSearch}"
+                  "{normalizedSearch}"
                 </span>
               </>
             ) : null}

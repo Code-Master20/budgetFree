@@ -83,6 +83,7 @@ export default function ProductCatalog({
   subtitle = "Filter by category, search by name, and compare price and rating before opening a product page.",
   eyebrow = "Products",
   showCategoryFilters = true,
+  categoryOptions = null,
   leadingControl = null,
   emptyStateTitle = "Nothing matches yet",
   emptyStateCopy = "Try another keyword or category to find more products.",
@@ -149,10 +150,9 @@ export default function ProductCatalog({
     };
   }, [normalizedSearch, user]);
 
-  const categories = [
-    "All",
-    ...new Set(products.map((product) => product.category).filter(Boolean)),
-  ];
+  const categories = categoryOptions?.length
+    ? ["All", ...categoryOptions]
+    : ["All", ...new Set(products.map((product) => product.category).filter(Boolean))];
 
   const filteredProducts = products
     .filter((product) => {

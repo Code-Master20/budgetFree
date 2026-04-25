@@ -12,6 +12,66 @@ const DUMMY_BATCHES = [
   { label: "Plus", priceDelta: 350, ratingDelta: 0.1 },
   { label: "Max", priceDelta: 700, ratingDelta: 0.2 },
 ];
+const EYE_TIE_VARIANTS = [
+  {
+    brand: "RayZone",
+    line: "Blue Cut Vision",
+    price: 1199,
+    rating: 4.2,
+    feature: "Blue light filtering lenses",
+  },
+  {
+    brand: "Urban Frame",
+    line: "Workday Clear",
+    price: 1499,
+    rating: 4.1,
+    feature: "Lightweight full-rim frame",
+  },
+  {
+    brand: "OptiWear",
+    line: "Screen Comfort",
+    price: 1799,
+    rating: 4.4,
+    feature: "Anti-glare transparent lens",
+  },
+  {
+    brand: "VisionCraft",
+    line: "Night Reader",
+    price: 1599,
+    rating: 4.0,
+    feature: "Comfort fit temples",
+  },
+];
+const CLOTHES_VARIANTS = [
+  {
+    brand: "CampusThread",
+    line: "Everyday Hoodie",
+    price: 1299,
+    rating: 4.3,
+    feature: "Soft brushed cotton blend",
+  },
+  {
+    brand: "StreetForm",
+    line: "Relaxed Joggers",
+    price: 999,
+    rating: 4.1,
+    feature: "Tapered comfort fit",
+  },
+  {
+    brand: "UrbanFold",
+    line: "Oversized Tee",
+    price: 699,
+    rating: 4.0,
+    feature: "Breathable daily wear fabric",
+  },
+  {
+    brand: "ModeCraft",
+    line: "Checked Shirt",
+    price: 1199,
+    rating: 4.2,
+    feature: "Smart casual pattern",
+  },
+];
 const LAPTOP_USE_CASES = [
   {
     label: "Students",
@@ -390,11 +450,10 @@ const audioVariants = [
   },
 ];
 
-const accessoryVariants = [
+const electronicsVariants = [
   {
     brand: "Logitech",
     line: "Student Mouse M221",
-    category: "Accessories",
     price: 799,
     rating: 4.5,
     feature: "Silent clicks",
@@ -402,7 +461,6 @@ const accessoryVariants = [
   {
     brand: "HP",
     line: "Campus Backpack 15",
-    category: "Accessories",
     price: 1299,
     rating: 4.3,
     feature: "Padded laptop compartment",
@@ -410,7 +468,6 @@ const accessoryVariants = [
   {
     brand: "Portronics",
     line: "DeskMate Laptop Stand",
-    category: "Accessories",
     price: 1499,
     rating: 4.4,
     feature: "Adjustable alloy stand",
@@ -418,7 +475,6 @@ const accessoryVariants = [
   {
     brand: "Ambrane",
     line: "PowerMax 20000",
-    category: "Accessories",
     price: 1799,
     rating: 4.2,
     feature: "20,000mAh power bank",
@@ -426,7 +482,6 @@ const accessoryVariants = [
   {
     brand: "Cosmic Byte",
     line: "Typing Keyboard",
-    category: "Accessories",
     price: 999,
     rating: 4.1,
     feature: "Full-size wired keyboard",
@@ -434,7 +489,6 @@ const accessoryVariants = [
   {
     brand: "TP-Link",
     line: "Study Router AX1500",
-    category: "Networking",
     price: 2499,
     rating: 4.4,
     feature: "Dual-band Wi-Fi 6",
@@ -471,10 +525,7 @@ const createLaptopProducts = () =>
     return {
       title: `${item.brand} ${item.line} ${batch.label} ${item.processor} Laptop for ${useCase.label}`,
       description: `Dummy laptop test product. Includes ${item.ram}, ${item.storage}, and a ${item.screen} display. ${useCase.description} ${batch.label} edition adds more variety for search and filter testing.`,
-      category:
-        useCase.label === "Students" && index % 2 === 0
-          ? "Student Laptops"
-          : "Laptops",
+      category: "Laptops",
       price: item.price + batch.priceDelta,
       affiliateLink: buildAffiliateLink(slug),
       images: [buildImage(`student-laptop-${index + 1}-${batchIndex + 1}`)],
@@ -508,7 +559,7 @@ const createPhoneProducts = () =>
     return {
       title: `${item.brand} ${item.line} ${batch.label} Smartphone`,
       description: `Dummy phone listing for catalog and search testing with ${item.memory}, ${item.camera}, and ${item.battery}. ${batch.label} edition helps create a richer storefront.`,
-      category: "Smartphones",
+      category: "Mobiles",
       price: item.price + batch.priceDelta,
       affiliateLink: buildAffiliateLink(slug),
       images: [buildImage(`phone-${index + 1}-${batchIndex + 1}`)],
@@ -525,7 +576,7 @@ const createTabletProducts = () =>
     return {
       title: `${item.brand} ${item.line} ${batch.label} Tablet`,
       description: `Dummy tablet product for browsing, note-taking, and streaming tests with ${item.display} and ${item.memory}. ${batch.label} edition expands the test catalog.`,
-      category: "Tablets",
+      category: "Electronics",
       price: item.price + batch.priceDelta,
       affiliateLink: buildAffiliateLink(slug),
       images: [buildImage(`tablet-${index + 1}-${batchIndex + 1}`)],
@@ -542,7 +593,7 @@ const createAudioProducts = () =>
     return {
       title: `${item.brand} ${item.line} ${batch.label} Wireless Earbuds`,
       description: `Dummy audio product for UI testing with ENC calling support and ${item.battery}. ${batch.label} edition gives search more varied phrases to match.`,
-      category: "Audio",
+      category: "Electronics",
       price: item.price + Math.round(batch.priceDelta / 4),
       affiliateLink: buildAffiliateLink(slug),
       images: [buildImage(`audio-${index + 1}-${batchIndex + 1}`)],
@@ -553,13 +604,13 @@ const createAudioProducts = () =>
     };
   });
 
-const createAccessoryProducts = () =>
-  createVariantCopies(accessoryVariants, (item, index, batch, batchIndex) => {
+const createElectronicsProducts = () =>
+  createVariantCopies(electronicsVariants, (item, index, batch, batchIndex) => {
     const slug = slugify(`${item.brand}-${item.line}-${batch.label}-${index + 1}`);
     return {
       title: `${item.brand} ${item.line} ${batch.label}`,
       description: `Dummy accessory product used to test category browsing and product cards. Includes ${item.feature}. ${batch.label} edition helps build a larger browsing dataset.`,
-      category: item.category,
+      category: "Electronics",
       price: item.price + Math.round(batch.priceDelta / 5),
       affiliateLink: buildAffiliateLink(slug),
       images: [buildImage(`accessory-${index + 1}-${batchIndex + 1}`)],
@@ -570,12 +621,48 @@ const createAccessoryProducts = () =>
     };
   });
 
+const createEyeTieProducts = () =>
+  createVariantCopies(EYE_TIE_VARIANTS, (item, index, batch, batchIndex) => {
+    const slug = slugify(`${item.brand}-${item.line}-${batch.label}-${index + 1}`);
+    return {
+      title: `${item.brand} ${item.line} ${batch.label} Eye-tie`,
+      description: `Dummy eye-tie product for category browsing tests. Includes ${item.feature} and a ${batch.label.toLowerCase()} style option.`,
+      category: "Eye-tie",
+      price: item.price + Math.round(batch.priceDelta / 4),
+      affiliateLink: buildAffiliateLink(slug),
+      images: [buildImage(`eyetie-${index + 1}-${batchIndex + 1}`)],
+      features: [item.feature, "Comfortable daily wear", `${batch.label} frame style`],
+      pros: ["Useful for screen-heavy days", "Lightweight fit", "Easy style upgrade"],
+      cons: ["No prescription lens included", "Basic carry case"],
+      rating: clampRating(item.rating + batch.ratingDelta),
+    };
+  });
+
+const createClothesProducts = () =>
+  createVariantCopies(CLOTHES_VARIANTS, (item, index, batch, batchIndex) => {
+    const slug = slugify(`${item.brand}-${item.line}-${batch.label}-${index + 1}`);
+    return {
+      title: `${item.brand} ${item.line} ${batch.label}`,
+      description: `Dummy clothes product for storefront testing. Includes ${item.feature} and a ${batch.label.toLowerCase()} edition for richer category coverage.`,
+      category: "Clothes",
+      price: item.price + Math.round(batch.priceDelta / 4),
+      affiliateLink: buildAffiliateLink(slug),
+      images: [buildImage(`clothes-${index + 1}-${batchIndex + 1}`)],
+      features: [item.feature, "Casual daily wear", `${batch.label} edition`],
+      pros: ["Comfortable everyday fit", "Good casual styling", "Budget-friendly wardrobe option"],
+      cons: ["Basic fabric finish", "Color choices may vary"],
+      rating: clampRating(item.rating + batch.ratingDelta),
+    };
+  });
+
 const dummyProducts = [
   ...createLaptopProducts(),
   ...createPhoneProducts(),
   ...createTabletProducts(),
   ...createAudioProducts(),
-  ...createAccessoryProducts(),
+  ...createElectronicsProducts(),
+  ...createEyeTieProducts(),
+  ...createClothesProducts(),
 ];
 
 const isRemoteMongoUri = (mongoUri) => {

@@ -1,5 +1,4 @@
 import { motion as Motion } from "framer-motion";
-import LaptopDropdown from "../components/LaptopDropdown";
 import PageTransition from "../components/PageTransition";
 import ProductCatalog from "../components/ProductCatalog";
 import SiteChrome from "../components/SiteChrome";
@@ -28,13 +27,17 @@ export default function Products() {
           </Motion.header>
 
           <ProductCatalog
-            requestParams={{ search: "laptop" }}
-            showCategoryFilters={false}
-            leadingControl={<LaptopDropdown />}
-            title="Browse and compare laptops"
-            subtitle="Start with laptop-focused results and use the dropdown for students, coding, or gaming collections."
-            emptyStateTitle="No laptops found yet"
-            emptyStateCopy="Add or seed laptop products to populate this catalog."
+            categoryOptions={[
+              "Laptops",
+              "Mobiles",
+              "Electronics",
+              "Eye-tie",
+              "Clothes",
+            ]}
+            title="Browse and compare products"
+            subtitle="Use the category pills to jump between laptops, mobiles, electronics, eye-tie, clothes, and more relevant shopping sections."
+            emptyStateTitle="No products found yet"
+            emptyStateCopy="Add or seed products to populate these shopping categories."
           />
         </div>
       </SiteChrome>

@@ -1,5 +1,5 @@
 import { motion as Motion } from "framer-motion";
-import { useEffect, useEffectEvent, useMemo, useState } from "react";
+import { useEffect, useEffectEvent, useMemo, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link } from "react-router-dom";
 import API from "../api";
@@ -87,15 +87,35 @@ const initialProductForm = {
   rating: "",
 };
 
-function normalizeList(value) {
-  return value
-    .split("\n")
-    .map((item) => item.trim())
-    .filter(Boolean);
-}
+const MAX_PRODUCT_IMAGES = 4;
 
 function listToMultiline(items) {
   return Array.isArray(items) ? items.join("\n") : "";
+}
+
+function countMultilineItems(value) {
+  return String(value || "")
+    .split("\n")
+    .map((item) => item.trim())
+    .filter(Boolean).length;
+}
+
+function createLocalImageEntries(fileList) {
+  return Array.from(fileList || [])
+    .filter((file) => file?.type?.startsWith("image/"))
+    .map((file) => ({
+      id: `${file.name}-${file.lastModified}-${file.size}-${Math.random().toString(36).slice(2)}`,
+      file,
+      previewUrl: URL.createObjectURL(file),
+    }));
+}
+
+function releaseLocalImageEntries(entries) {
+  entries.forEach((entry) => {
+    if (entry?.previewUrl) {
+      URL.revokeObjectURL(entry.previewUrl);
+    }
+  });
 }
 
 export default function AdminPanel() {
@@ -111,6 +131,7 @@ export default function AdminPanel() {
   const [data, setData] = useState(null);
   const [allReviews, setAllReviews] = useState([]);
   const [productForm, setProductForm] = useState(initialProductForm);
+  const [productImageFiles, setProductImageFiles] = useState([]);
   const [amazonImportUrl, setAmazonImportUrl] = useState("");
   const [editingProductId, setEditingProductId] = useState(null);
   const [creatingOrUpdatingProduct, setCreatingOrUpdatingProduct] =
@@ -121,6 +142,7 @@ export default function AdminPanel() {
   const [rejectReasons, setRejectReasons] = useState({});
   const [sendingRewardId, setSendingRewardId] = useState("");
   const [giftCardLinks, setGiftCardLinks] = useState({});
+  const productImageFilesRef = useRef([]);
   const hasAdminOtpVerification = Boolean(user?.otpVerification?.adminAccess);
 
   const handleAdminOtpRequired = async () => {
@@ -184,6 +206,17 @@ export default function AdminPanel() {
     bootstrap();
   }, [hasAdminOtpVerification]);
 
+  useEffect(() => {
+    productImageFilesRef.current = productImageFiles;
+  }, [productImageFiles]);
+
+  useEffect(
+    () => () => {
+      releaseLocalImageEntries(productImageFilesRef.current);
+    },
+    [],
+  );
+
   const summaryCards = useMemo(() => {
     if (!data?.overview) {
       return [];
@@ -230,6 +263,16 @@ export default function AdminPanel() {
     [allReviews],
   );
 
+  const manualImageCount = useMemo(
+    () => countMultilineItems(productForm.images),
+    [productForm.images],
+  );
+  const totalSelectedImageCount = manualImageCount + productImageFiles.length;
+  const remainingImageSlots = Math.max(
+    MAX_PRODUCT_IMAGES - totalSelectedImageCount,
+    0,
+  );
+
   const handleProductFormChange = (event) => {
     const { name, value } = event.target;
     setProductForm((current) => ({
@@ -238,7 +281,66 @@ export default function AdminPanel() {
     }));
   };
 
+  const clearProductImageFiles = () => {
+    setProductImageFiles((current) => {
+      releaseLocalImageEntries(current);
+      return [];
+    });
+  };
+
+  const appendProductImageFiles = (fileList) => {
+    const nextEntries = createLocalImageEntries(fileList);
+
+    if (!nextEntries.length) {
+      return;
+    }
+
+    if (remainingImageSlots <= 0) {
+      setError(`A product can have at most ${MAX_PRODUCT_IMAGES} images.`);
+      return;
+    }
+
+    const acceptedEntries = nextEntries.slice(0, remainingImageSlots);
+
+    if (acceptedEntries.length < nextEntries.length) {
+      setError(`Only ${MAX_PRODUCT_IMAGES} product images are allowed.`);
+    }
+
+    setProductImageFiles((current) => [...current, ...acceptedEntries]);
+  };
+
+  const handleProductImageSelection = (event) => {
+    appendProductImageFiles(event.target.files);
+    event.target.value = "";
+  };
+
+  const handleProductImagePaste = (event) => {
+    const pastedFiles = Array.from(event.clipboardData?.items || [])
+      .map((item) => (item.kind === "file" ? item.getAsFile() : null))
+      .filter((file) => file?.type?.startsWith("image/"));
+
+    if (!pastedFiles.length) {
+      return;
+    }
+
+    event.preventDefault();
+    appendProductImageFiles(pastedFiles);
+  };
+
+  const handleRemoveProductImageFile = (entryId) => {
+    setProductImageFiles((current) => {
+      const entryToRemove = current.find((entry) => entry.id === entryId);
+
+      if (entryToRemove) {
+        releaseLocalImageEntries([entryToRemove]);
+      }
+
+      return current.filter((entry) => entry.id !== entryId);
+    });
+  };
+
   const resetProductForm = () => {
+    clearProductImageFiles();
     setProductForm(initialProductForm);
     setEditingProductId(null);
   };
@@ -251,18 +353,25 @@ export default function AdminPanel() {
       setError("");
       setSuccessMessage("");
 
-      const payload = {
-        title: productForm.title.trim(),
-        description: productForm.description.trim(),
-        category: productForm.category.trim(),
-        price: Number(productForm.price || 0),
-        affiliateLink: productForm.affiliateLink.trim(),
-        images: normalizeList(productForm.images),
-        features: normalizeList(productForm.features),
-        pros: normalizeList(productForm.pros),
-        cons: normalizeList(productForm.cons),
-        rating: Number(productForm.rating || 0),
-      };
+      if (totalSelectedImageCount > MAX_PRODUCT_IMAGES) {
+        setError(`A product can have at most ${MAX_PRODUCT_IMAGES} images.`);
+        return;
+      }
+
+      const payload = new FormData();
+      payload.append("title", productForm.title.trim());
+      payload.append("description", productForm.description.trim());
+      payload.append("category", productForm.category.trim());
+      payload.append("price", String(Number(productForm.price || 0)));
+      payload.append("affiliateLink", productForm.affiliateLink.trim());
+      payload.append("images", productForm.images);
+      payload.append("features", productForm.features);
+      payload.append("pros", productForm.pros);
+      payload.append("cons", productForm.cons);
+      payload.append("rating", String(Number(productForm.rating || 0)));
+      productImageFiles.forEach(({ file }) => {
+        payload.append("uploadedImages", file);
+      });
 
       if (editingProductId) {
         await API.put(`/products/${editingProductId}`, payload);
@@ -300,6 +409,7 @@ export default function AdminPanel() {
       const importedProduct = response.data?.product;
 
       if (importedProduct) {
+        clearProductImageFiles();
         setEditingProductId(importedProduct._id || null);
         setProductForm({
           title: importedProduct.title || "",
@@ -344,6 +454,7 @@ export default function AdminPanel() {
       const response = await API.get(`/products/${productId}`);
       const product = response.data;
 
+      clearProductImageFiles();
       setEditingProductId(productId);
       setProductForm({
         title: product.title || "",
@@ -683,7 +794,11 @@ export default function AdminPanel() {
                 </p>
               </form>
 
-              <form onSubmit={handleCreateOrUpdateProduct} className="space-y-4">
+              <form
+                onSubmit={handleCreateOrUpdateProduct}
+                onPasteCapture={handleProductImagePaste}
+                className="space-y-4"
+              >
               <div className="grid gap-4 md:grid-cols-2">
                 <label className="block">
                   <span className="mb-2 block text-sm font-medium text-slate-600">
@@ -786,10 +901,83 @@ export default function AdminPanel() {
                     value={productForm.images}
                     onChange={handleProductFormChange}
                     className="field min-h-28"
-                    placeholder="One image URL per line"
+                    placeholder="Up to 4 images total, one image URL per line"
                   />
+                  <p className="mt-2 text-xs text-slate-500">
+                    {manualImageCount} URL image{manualImageCount === 1 ? "" : "s"} added.
+                  </p>
                 </label>
 
+                <div className="block">
+                  <span className="mb-2 block text-sm font-medium text-slate-600">
+                    Upload or paste product images
+                  </span>
+                  <div className="space-y-3 rounded-[24px] border border-dashed border-slate-300 bg-white/72 p-4">
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+                      <p className="text-sm leading-6 text-slate-500">
+                        Add local images when you don&apos;t have a URL. You can
+                        choose files or paste an image directly into this form.
+                        Maximum 4 images total per product.
+                      </p>
+                      <label className="secondary-button cursor-pointer">
+                        <span>Select images</span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          multiple
+                          onChange={handleProductImageSelection}
+                          className="hidden"
+                        />
+                      </label>
+                    </div>
+
+                    <p className="text-xs text-slate-500">
+                      {productImageFiles.length} local image
+                      {productImageFiles.length === 1 ? "" : "s"} selected.
+                      {" "}
+                      {remainingImageSlots} slot
+                      {remainingImageSlots === 1 ? "" : "s"} remaining.
+                    </p>
+
+                    {productImageFiles.length ? (
+                      <div className="grid gap-3 sm:grid-cols-2">
+                        {productImageFiles.map((entry) => (
+                          <div
+                            key={entry.id}
+                            className="rounded-[20px] border border-slate-200 bg-slate-50 p-3"
+                          >
+                            <img
+                              src={entry.previewUrl}
+                              alt={entry.file.name || "Selected product image"}
+                              className="h-28 w-full rounded-[16px] object-cover"
+                            />
+                            <div className="mt-3 flex items-start justify-between gap-3">
+                              <p className="min-w-0 flex-1 truncate text-xs text-slate-500">
+                                {entry.file.name}
+                              </p>
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  handleRemoveProductImageFile(entry.id)
+                                }
+                                className="text-xs font-medium text-rose-600 transition hover:text-rose-700"
+                              >
+                                Remove
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-sm text-slate-400">
+                        No local images selected yet.
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid gap-4 lg:grid-cols-2">
                 <label className="block">
                   <span className="mb-2 block text-sm font-medium text-slate-600">
                     Features

@@ -10,10 +10,12 @@ const {
 } = require("../controllers/productController");
 
 const { protect, admin } = require("../middleware/authMiddleware");
+const upload = require("../middleware/uploadMiddleware");
 const { requireOtpVerification } = require("../middleware/otpMiddleware");
 const { OTP_PURPOSES } = require("../utils/otp");
 
 const router = express.Router();
+const productImageUpload = upload.createUpload({ folder: "products" });
 
 // Public
 router.get("/", getProducts);
@@ -29,6 +31,7 @@ router.post(
   protect,
   admin,
   requireOtpVerification(OTP_PURPOSES.ADMIN_ACCESS),
+  productImageUpload.array("uploadedImages", 4),
   createProduct,
 );
 router.post(
@@ -43,6 +46,7 @@ router.put(
   protect,
   admin,
   requireOtpVerification(OTP_PURPOSES.ADMIN_ACCESS),
+  productImageUpload.array("uploadedImages", 4),
   updateProduct,
 );
 router.delete(

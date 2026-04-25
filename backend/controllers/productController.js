@@ -37,6 +37,62 @@ const SEARCH_STOP_WORDS = new Set([
 const escapeRegex = (value) =>
   value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
+const normalizeString = (value) =>
+  typeof value === "string" ? value.trim() : "";
+
+const parseListField = (value) => {
+  if (Array.isArray(value)) {
+    return value.flatMap(parseListField).filter(Boolean);
+  }
+
+  if (typeof value !== "string") {
+    return [];
+  }
+
+  const trimmedValue = value.trim();
+
+  if (!trimmedValue) {
+    return [];
+  }
+
+  if (trimmedValue.startsWith("[") && trimmedValue.endsWith("]")) {
+    try {
+      return parseListField(JSON.parse(trimmedValue));
+    } catch (error) {
+      // Fall back to line-based parsing if the value is not valid JSON.
+    }
+  }
+
+  return trimmedValue
+    .split(/\r?\n/)
+    .map((item) => item.trim())
+    .filter(Boolean);
+};
+
+const buildProductPayload = (req) => {
+  const uploadedImages = Array.isArray(req.files)
+    ? req.files.map((file) => file.path).filter(Boolean)
+    : [];
+  const images = [...parseListField(req.body.images), ...uploadedImages];
+
+  if (images.length > 4) {
+    throw new Error("A product can have at most 4 images");
+  }
+
+  return {
+    title: normalizeString(req.body.title),
+    description: normalizeString(req.body.description),
+    category: normalizeString(req.body.category),
+    price: Number(req.body.price || 0),
+    affiliateLink: normalizeString(req.body.affiliateLink),
+    images,
+    features: parseListField(req.body.features),
+    pros: parseListField(req.body.pros),
+    cons: parseListField(req.body.cons),
+    rating: Number(req.body.rating || 0),
+  };
+};
+
 const normalizeSearchTerm = (value) => {
   const normalizedValue = value.trim().toLowerCase();
 
@@ -187,8 +243,12 @@ exports.getProductById = async (req, res) => {
 
 // @desc Create product (Admin)
 exports.createProduct = async (req, res) => {
-  const product = await Product.create(req.body);
-  res.status(201).json(product);
+  try {
+    const product = await Product.create(buildProductPayload(req));
+    res.status(201).json(product);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
 };
 
 // @desc Import product from Amazon affiliate link (Admin)
@@ -262,11 +322,19 @@ exports.importAmazonProduct = async (req, res) => {
 
 // @desc Update product (Admin)
 exports.updateProduct = async (req, res) => {
-  const product = await Product.findByIdAndUpdate(req.params.id, req.body, {
-    new: true,
-  });
+  try {
+    const product = await Product.findByIdAndUpdate(
+      req.params.id,
+      buildProductPayload(req),
+      {
+        new: true,
+      },
+    );
 
-  res.json(product);
+    res.json(product);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
 };
 
 // @desc Delete product (Admin)

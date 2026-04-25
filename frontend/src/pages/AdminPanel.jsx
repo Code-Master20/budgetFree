@@ -299,8 +299,8 @@ export default function AdminPanel() {
       });
       const importedProduct = response.data?.product;
 
-      if (importedProduct?._id) {
-        setEditingProductId(importedProduct._id);
+      if (importedProduct) {
+        setEditingProductId(importedProduct._id || null);
         setProductForm({
           title: importedProduct.title || "",
           description: importedProduct.description || "",
@@ -319,7 +319,10 @@ export default function AdminPanel() {
       setSuccessMessage(
         response.data?.message || "Amazon product imported successfully.",
       );
-      await loadDashboard({ showLoader: false });
+
+      if (importedProduct?._id) {
+        await loadDashboard({ showLoader: false });
+      }
     } catch (actionError) {
       if (actionError.response?.data?.code === "OTP_REQUIRED") {
         await handleAdminOtpRequired();
@@ -674,8 +677,9 @@ export default function AdminPanel() {
                 </div>
                 <p className="mt-3 text-sm leading-6 text-slate-500">
                   This fills title, image, features, listed price, and sales-rank
-                  context from Amazon&apos;s API. Buyer counts and customer-rating
-                  counts are not exposed by this importer.
+                  context from Amazon&apos;s API. If API access is not configured,
+                  we will still load a draft from the affiliate link so you can
+                  complete the product manually.
                 </p>
               </form>
 

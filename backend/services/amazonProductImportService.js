@@ -1,4 +1,5 @@
 const crypto = require("crypto");
+const http = require("http");
 const https = require("https");
 
 const AMAZON_HOST = process.env.AMAZON_PAAPI_HOST?.trim();
@@ -170,6 +171,59 @@ const postJson = (host, path, headers, body) =>
     request.end();
   });
 
+const resolveRedirectedUrl = (inputUrl, redirectsRemaining = 5) =>
+  new Promise((resolve, reject) => {
+    let parsedUrl;
+
+    try {
+      parsedUrl = new URL(inputUrl);
+    } catch (error) {
+      reject(new Error("The provided affiliate link is not a valid URL"));
+      return;
+    }
+
+    const transport = parsedUrl.protocol === "http:" ? http : https;
+    const request = transport.request(
+      parsedUrl,
+      {
+        method: "GET",
+        headers: {
+          "user-agent":
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 " +
+            "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+        },
+      },
+      (response) => {
+        const location = response.headers.location;
+        const isRedirect =
+          typeof response.statusCode === "number" &&
+          response.statusCode >= 300 &&
+          response.statusCode < 400 &&
+          location;
+
+        response.resume();
+
+        if (isRedirect) {
+          if (redirectsRemaining <= 0) {
+            reject(new Error("Too many redirects while expanding Amazon link"));
+            return;
+          }
+
+          const nextUrl = new URL(location, parsedUrl).toString();
+          resolve(resolveRedirectedUrl(nextUrl, redirectsRemaining - 1));
+          return;
+        }
+
+        resolve(parsedUrl.toString());
+      },
+    );
+
+    request.on("error", (error) => {
+      reject(error);
+    });
+    request.end();
+  });
+
 const mapAmazonItemToProduct = ({ item, affiliateLink, asin }) => {
   const features = item?.ItemInfo?.Features?.DisplayValues || [];
   const title = item?.ItemInfo?.Title?.DisplayValue || `Amazon product ${asin}`;
@@ -205,9 +259,42 @@ const mapAmazonItemToProduct = ({ item, affiliateLink, asin }) => {
   };
 };
 
+const buildAmazonDraftFromLink = async (affiliateLink) => {
+  const expandedUrl = await resolveRedirectedUrl(affiliateLink);
+  const asin =
+    extractAsinFromUrl(affiliateLink) || extractAsinFromUrl(expandedUrl);
+
+  if (!asin) {
+    throw new Error("Could not extract an Amazon ASIN from the provided link");
+  }
+
+  return {
+    title: `Amazon product ${asin}`,
+    description:
+      "Amazon API metadata is unavailable for this account. Fill in the " +
+      "product title, image, price, and other details manually before saving.",
+    category: "Amazon",
+    price: null,
+    affiliateLink,
+    images: [],
+    features: [],
+    pros: [],
+    cons: [],
+    rating: 0,
+    asin,
+    expandedUrl,
+    isDraft: true,
+  };
+};
+
 const fetchAmazonProduct = async (affiliateLink) => {
   const config = getRequiredConfig();
-  const asin = extractAsinFromUrl(affiliateLink);
+  let asin = extractAsinFromUrl(affiliateLink);
+
+  if (!asin) {
+    const expandedUrl = await resolveRedirectedUrl(affiliateLink);
+    asin = extractAsinFromUrl(expandedUrl);
+  }
 
   if (!asin) {
     throw new Error("Could not extract an Amazon ASIN from the provided link");
@@ -266,6 +353,8 @@ const fetchAmazonProduct = async (affiliateLink) => {
 };
 
 module.exports = {
+  buildAmazonDraftFromLink,
   fetchAmazonProduct,
   extractAsinFromUrl,
+  resolveRedirectedUrl,
 };

@@ -1,5 +1,8 @@
 const Product = require("../models/Product");
-const { fetchAmazonProduct } = require("../services/amazonProductImportService");
+const {
+  buildAmazonDraftFromLink,
+  fetchAmazonProduct,
+} = require("../services/amazonProductImportService");
 
 const DEFAULT_PAGE_SIZE = 10;
 const MAX_PAGE_SIZE = 300;
@@ -199,7 +202,39 @@ exports.importAmazonProduct = async (req, res) => {
         .json({ message: "Affiliate link is required for Amazon import" });
     }
 
-    const importedProduct = await fetchAmazonProduct(affiliateLink);
+    let importedProduct;
+
+    try {
+      importedProduct = await fetchAmazonProduct(affiliateLink);
+    } catch (error) {
+      const isAmazonApiConfigError =
+        typeof error.message === "string" &&
+        error.message.startsWith("Amazon API is not configured.");
+
+      if (!isAmazonApiConfigError) {
+        throw error;
+      }
+
+      const existingProduct = await Product.findOne({ affiliateLink });
+
+      if (existingProduct) {
+        return res.json({
+          message: "Existing product loaded for this Amazon affiliate link.",
+          product: existingProduct,
+        });
+      }
+
+      const draftProduct = await buildAmazonDraftFromLink(affiliateLink);
+
+      return res.json({
+        message:
+          "Amazon API access is not configured, so a draft product was " +
+          "loaded instead. Fill the remaining fields manually and save.",
+        product: draftProduct,
+        draft: true,
+      });
+    }
+
     const existingProduct = await Product.findOne({
       affiliateLink: importedProduct.affiliateLink,
     });

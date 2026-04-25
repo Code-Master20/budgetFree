@@ -47,8 +47,8 @@ function AppRoutes() {
           path="/products/laptops-for-coding"
           element={
             <LaptopCollectionPage
-              eyebrow="Laptop for coding"
-              title="Laptop for coding"
+              eyebrow="Best laptops for coding"
+              title="Best laptops for coding"
               subtitle="Open a coding-focused laptop list with matches geared toward VS Code, browser tabs, terminal work, and lightweight development setups."
               requestParams={{ search: "laptop coding", limit: 300 }}
               callout="This route narrows the catalog to laptops that mention coding-oriented use so you can test a more relevant shortlist."

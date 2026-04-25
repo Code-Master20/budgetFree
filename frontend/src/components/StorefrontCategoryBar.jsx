@@ -3,7 +3,6 @@ import { Link, useLocation, useSearchParams } from "react-router-dom";
 
 const CATEGORY_LINKS = [
   { label: "Mobiles", to: "/products?category=Mobiles" },
-  { label: "Electronics", to: "/products?category=Electronics" },
   { label: "Eye-tie", to: "/products?category=Eye-tie" },
   { label: "Clothes", to: "/products?category=Clothes" },
 ];

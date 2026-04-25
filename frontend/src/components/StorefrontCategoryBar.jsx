@@ -86,8 +86,11 @@ export default function StorefrontCategoryBar() {
         >
           <span className="flex items-center gap-2">
             <span>Laptops</span>
-            <span className={`text-[10px] transition ${isLaptopMenuOpen ? "rotate-180" : ""}`}>
-              v
+            <span
+              aria-hidden="true"
+              className={`inline-block text-[10px] leading-none transition ${isLaptopMenuOpen ? "rotate-180" : ""}`}
+            >
+              ▼
             </span>
           </span>
         </button>

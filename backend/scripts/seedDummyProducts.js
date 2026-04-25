@@ -104,7 +104,7 @@ const laptopVariants = [
     ram: "4GB RAM",
     storage: "128GB SSD",
     screen: "14-inch HD",
-    price: 16999,
+    price: 13999,
     rating: 4.1,
   },
   {
@@ -164,7 +164,7 @@ const laptopVariants = [
     ram: "4GB RAM",
     storage: "128GB UFS",
     screen: "11.6-inch HD",
-    price: 16499,
+    price: 13499,
     rating: 3.9,
   },
   {
@@ -234,7 +234,7 @@ const laptopVariants = [
     ram: "4GB RAM",
     storage: "64GB eMMC",
     screen: "11.6-inch HD",
-    price: 15999,
+    price: 12999,
     rating: 3.8,
   },
   {

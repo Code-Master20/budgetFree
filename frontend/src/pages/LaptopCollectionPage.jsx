@@ -45,6 +45,7 @@ export default function LaptopCollectionPage({
             title={title}
             subtitle={subtitle}
             showCategoryFilters={false}
+            staticBadge="Laptop picks"
             emptyStateTitle={emptyStateTitle}
             emptyStateCopy={emptyStateCopy}
           />

@@ -61,13 +61,41 @@ function AppRoutes() {
           path="/products/laptops-for-gaming"
           element={
             <LaptopCollectionPage
-              eyebrow="Laptop for gaming"
-              title="Laptop for gaming"
+              eyebrow="Best laptops for gaming"
+              title="Best laptops for gaming"
               subtitle="View gaming-oriented laptop matches for entry-level play, esports titles, and casual after-hours performance."
               requestParams={{ search: "laptop gaming", limit: 300 }}
               callout="This collection stays laptop-first and looks for gaming language, so it feels much closer to a real browsing flow."
               emptyStateTitle="No gaming laptops found yet"
               emptyStateCopy="Seed or add laptop products that mention gaming use cases to populate this collection."
+            />
+          }
+        />
+        <Route
+          path="/products/best-laptops-under-15000-budget"
+          element={
+            <LaptopCollectionPage
+              eyebrow="Budget laptop picks"
+              title="Best laptops under Rs 15,000"
+              subtitle="Browse the lowest-budget laptop shortlist for basic study work, browsing, and light day-to-day use."
+              requestParams={{ category: "Laptops", maxPrice: 15000, limit: 300 }}
+              callout="This route filters the laptop catalog down to the strict under-15000 budget range so you can test a real low-cost shortlist."
+              emptyStateTitle="No laptops under Rs 15,000 found yet"
+              emptyStateCopy="Seed or add lower-budget laptop products to populate this collection."
+            />
+          }
+        />
+        <Route
+          path="/products/best-laptops-under-25000-budget"
+          element={
+            <LaptopCollectionPage
+              eyebrow="Budget laptop picks"
+              title="Best laptops under Rs 25,000"
+              subtitle="Browse a wider budget-friendly laptop collection with more practical choices for study, coding, and light gaming."
+              requestParams={{ category: "Laptops", maxPrice: 25000, limit: 300 }}
+              callout="This route keeps the selection laptop-only while filtering to a common student-friendly budget ceiling."
+              emptyStateTitle="No laptops under Rs 25,000 found yet"
+              emptyStateCopy="Seed or add laptop products under Rs 25,000 to populate this collection."
             />
           }
         />

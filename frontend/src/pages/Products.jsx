@@ -2,8 +2,13 @@ import { motion as Motion } from "framer-motion";
 import PageTransition from "../components/PageTransition";
 import ProductCatalog from "../components/ProductCatalog";
 import SiteChrome from "../components/SiteChrome";
+import StorefrontCategoryBar from "../components/StorefrontCategoryBar";
+import { useSearchParams } from "react-router-dom";
 
 export default function Products() {
+  const [searchParams] = useSearchParams();
+  const category = searchParams.get("category") || undefined;
+
   return (
     <PageTransition className="page-wrap">
       <SiteChrome>
@@ -27,13 +32,9 @@ export default function Products() {
           </Motion.header>
 
           <ProductCatalog
-            categoryOptions={[
-              "Laptops",
-              "Mobiles",
-              "Electronics",
-              "Eye-tie",
-              "Clothes",
-            ]}
+            requestParams={category ? { category } : {}}
+            showCategoryFilters={false}
+            leadingControl={<StorefrontCategoryBar />}
             title="Browse and compare products"
             subtitle="Use the category pills to jump between laptops, mobiles, electronics, eye-tie, clothes, and more relevant shopping sections."
             emptyStateTitle="No products found yet"

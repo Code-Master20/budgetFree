@@ -88,6 +88,13 @@ const initialProductForm = {
 };
 
 const MAX_PRODUCT_IMAGES = 4;
+const PRODUCT_CATEGORY_SUGGESTIONS = [
+  "Laptops",
+  "Mobiles",
+  "Eye-tie",
+  "Clothes",
+  "Watches",
+];
 
 function listToMultiline(items) {
   return Array.isArray(items) ? items.join("\n") : "";
@@ -823,9 +830,15 @@ export default function AdminPanel() {
                     name="category"
                     value={productForm.category}
                     onChange={handleProductFormChange}
+                    list="product-category-suggestions"
                     className="field"
-                    placeholder="Category"
+                    placeholder="Category such as Watches"
                   />
+                  <datalist id="product-category-suggestions">
+                    {PRODUCT_CATEGORY_SUGGESTIONS.map((category) => (
+                      <option key={category} value={category} />
+                    ))}
+                  </datalist>
                 </label>
               </div>
 

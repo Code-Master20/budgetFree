@@ -3,6 +3,7 @@ import { Link, useLocation, useSearchParams } from "react-router-dom";
 
 const CATEGORY_LINKS = [
   { label: "Clothes", to: "/products?category=Clothes" },
+  { label: "Watches", to: "/products?category=Watches" },
 ];
 
 const EYE_TIE_LINKS = [
@@ -99,12 +100,14 @@ const MOBILE_LINKS = [
 ];
 
 export default function StorefrontCategoryBar() {
-  const [isEyeTieMenuOpen, setIsEyeTieMenuOpen] = useState(false);
-  const [isLaptopMenuOpen, setIsLaptopMenuOpen] = useState(false);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [openMenuState, setOpenMenuState] = useState({
+    locationKey: "",
+    name: null,
+  });
   const [searchParams] = useSearchParams();
   const location = useLocation();
   const navRef = useRef(null);
+  const locationKey = `${location.pathname}${location.search}`;
   const activeCategory = searchParams.get("category") || "All";
   const eyeTieRoutes = new Set([
     "/products/best-computer-eye-glasses",
@@ -135,19 +138,30 @@ export default function StorefrontCategoryBar() {
     location.pathname === "/products/best-laptops-under-25000-budget";
   const isMobileRouteActive =
     activeCategory === "Mobiles" || mobileRoutes.has(location.pathname);
+  const isEyeTieMenuOpen =
+    openMenuState.name === "eye-tie" &&
+    openMenuState.locationKey === locationKey;
+  const isLaptopMenuOpen =
+    openMenuState.name === "laptops" &&
+    openMenuState.locationKey === locationKey;
+  const isMobileMenuOpen =
+    openMenuState.name === "mobiles" &&
+    openMenuState.locationKey === locationKey;
 
-  useEffect(() => {
-    setIsEyeTieMenuOpen(false);
-    setIsLaptopMenuOpen(false);
-    setIsMobileMenuOpen(false);
-  }, [location.pathname, location.search]);
+  const toggleMenu = (menuName) => {
+    setOpenMenuState((current) =>
+      current.name === menuName && current.locationKey === locationKey
+        ? { locationKey, name: null }
+        : { locationKey, name: menuName },
+    );
+  };
 
   useEffect(() => {
     const handlePointerDown = (event) => {
       if (!navRef.current?.contains(event.target)) {
-        setIsEyeTieMenuOpen(false);
-        setIsLaptopMenuOpen(false);
-        setIsMobileMenuOpen(false);
+        setOpenMenuState((current) =>
+          current.name ? { ...current, name: null } : current,
+        );
       }
     };
 
@@ -173,9 +187,7 @@ export default function StorefrontCategoryBar() {
         <button
           type="button"
           onClick={() => {
-            setIsLaptopMenuOpen(false);
-            setIsMobileMenuOpen(false);
-            setIsEyeTieMenuOpen((current) => !current);
+            toggleMenu("eye-tie");
           }}
           aria-expanded={isEyeTieMenuOpen}
           className={linkClassName(isEyeTieRouteActive)}
@@ -212,9 +224,7 @@ export default function StorefrontCategoryBar() {
         <button
           type="button"
           onClick={() => {
-            setIsEyeTieMenuOpen(false);
-            setIsMobileMenuOpen(false);
-            setIsLaptopMenuOpen((current) => !current);
+            toggleMenu("laptops");
           }}
           aria-expanded={isLaptopMenuOpen}
           className={linkClassName(isLaptopRouteActive)}
@@ -251,9 +261,7 @@ export default function StorefrontCategoryBar() {
         <button
           type="button"
           onClick={() => {
-            setIsEyeTieMenuOpen(false);
-            setIsLaptopMenuOpen(false);
-            setIsMobileMenuOpen((current) => !current);
+            toggleMenu("mobiles");
           }}
           aria-expanded={isMobileMenuOpen}
           className={linkClassName(isMobileRouteActive)}

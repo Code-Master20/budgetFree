@@ -7,6 +7,11 @@ dotenv.config();
 
 const DUMMY_DOMAIN = "dummy.budgetfree.local";
 const REMOTE_SEED_FLAG = "ALLOW_REMOTE_SEED";
+const DUMMY_BATCHES = [
+  { label: "Core", priceDelta: 0, ratingDelta: 0 },
+  { label: "Plus", priceDelta: 350, ratingDelta: 0.1 },
+  { label: "Max", priceDelta: 700, ratingDelta: 0.2 },
+];
 
 const laptopVariants = [
   {
@@ -424,22 +429,35 @@ const buildAffiliateLink = (slug) => `https://${DUMMY_DOMAIN}/products/${slug}`;
 const buildImage = (seed) =>
   `https://picsum.photos/seed/${seed}/800/600`;
 
+const createVariantCopies = (items, createProduct) =>
+  items.flatMap((item, index) =>
+    DUMMY_BATCHES.map((batch, batchIndex) =>
+      createProduct(item, index, batch, batchIndex),
+    ),
+  );
+
+const clampRating = (rating) =>
+  Math.max(3.5, Math.min(4.9, Number(rating.toFixed(1))));
+
 const createLaptopProducts = () =>
-  laptopVariants.map((item, index) => {
-    const slug = slugify(`${item.brand}-${item.line}-${item.processor}-${index + 1}`);
+  createVariantCopies(laptopVariants, (item, index, batch, batchIndex) => {
+    const slug = slugify(
+      `${item.brand}-${item.line}-${item.processor}-${batch.label}-${index + 1}`,
+    );
     return {
-      title: `${item.brand} ${item.line} ${item.processor} Laptop`,
-      description: `Dummy test product for student workflows. Includes ${item.ram}, ${item.storage}, and a ${item.screen} display for online classes, browsing, documents, and assignments.`,
+      title: `${item.brand} ${item.line} ${batch.label} ${item.processor} Laptop`,
+      description: `Dummy test product for student workflows. Includes ${item.ram}, ${item.storage}, and a ${item.screen} display for online classes, browsing, documents, and assignments. ${batch.label} edition adds more variety for search and filter testing.`,
       category: index % 3 === 0 ? "Student Laptops" : "Laptops",
-      price: item.price,
+      price: item.price + batch.priceDelta,
       affiliateLink: buildAffiliateLink(slug),
-      images: [buildImage(`student-laptop-${index + 1}`)],
+      images: [buildImage(`student-laptop-${index + 1}-${batchIndex + 1}`)],
       features: [
         item.processor,
         item.ram,
         item.storage,
         item.screen,
         "Wi-Fi and Bluetooth support",
+        `${batch.label} configuration`,
       ],
       pros: [
         "Budget-friendly for student use",
@@ -450,75 +468,75 @@ const createLaptopProducts = () =>
         "Not designed for heavy gaming",
         "Basic integrated graphics",
       ],
-      rating: item.rating,
+      rating: clampRating(item.rating + batch.ratingDelta),
     };
   });
 
 const createPhoneProducts = () =>
-  phoneVariants.map((item, index) => {
-    const slug = slugify(`${item.brand}-${item.line}-${index + 1}`);
+  createVariantCopies(phoneVariants, (item, index, batch, batchIndex) => {
+    const slug = slugify(`${item.brand}-${item.line}-${batch.label}-${index + 1}`);
     return {
-      title: `${item.brand} ${item.line} Smartphone`,
-      description: `Dummy phone listing for catalog and search testing with ${item.memory}, ${item.camera}, and ${item.battery}.`,
+      title: `${item.brand} ${item.line} ${batch.label} Smartphone`,
+      description: `Dummy phone listing for catalog and search testing with ${item.memory}, ${item.camera}, and ${item.battery}. ${batch.label} edition helps create a richer storefront.`,
       category: "Smartphones",
-      price: item.price,
+      price: item.price + batch.priceDelta,
       affiliateLink: buildAffiliateLink(slug),
-      images: [buildImage(`phone-${index + 1}`)],
-      features: [item.memory, item.camera, item.battery, "Dual SIM 5G"],
+      images: [buildImage(`phone-${index + 1}-${batchIndex + 1}`)],
+      features: [item.memory, item.camera, item.battery, "Dual SIM 5G", `${batch.label} model`],
       pros: ["Good value pricing", "Strong battery life", "Reliable daily performance"],
       cons: ["Mid-range low-light camera", "Plastic frame"],
-      rating: item.rating,
+      rating: clampRating(item.rating + batch.ratingDelta),
     };
   });
 
 const createTabletProducts = () =>
-  tabletVariants.map((item, index) => {
-    const slug = slugify(`${item.brand}-${item.line}-${index + 1}`);
+  createVariantCopies(tabletVariants, (item, index, batch, batchIndex) => {
+    const slug = slugify(`${item.brand}-${item.line}-${batch.label}-${index + 1}`);
     return {
-      title: `${item.brand} ${item.line} Tablet`,
-      description: `Dummy tablet product for browsing, note-taking, and streaming tests with ${item.display} and ${item.memory}.`,
+      title: `${item.brand} ${item.line} ${batch.label} Tablet`,
+      description: `Dummy tablet product for browsing, note-taking, and streaming tests with ${item.display} and ${item.memory}. ${batch.label} edition expands the test catalog.`,
       category: "Tablets",
-      price: item.price,
+      price: item.price + batch.priceDelta,
       affiliateLink: buildAffiliateLink(slug),
-      images: [buildImage(`tablet-${index + 1}`)],
-      features: [item.display, item.memory, "Stereo speakers", "USB-C charging"],
+      images: [buildImage(`tablet-${index + 1}-${batchIndex + 1}`)],
+      features: [item.display, item.memory, "Stereo speakers", "USB-C charging", `${batch.label} configuration`],
       pros: ["Large display for study content", "Portable media device", "Good for online learning"],
       cons: ["Basic cameras", "Limited multitasking on entry variants"],
-      rating: item.rating,
+      rating: clampRating(item.rating + batch.ratingDelta),
     };
   });
 
 const createAudioProducts = () =>
-  audioVariants.map((item, index) => {
-    const slug = slugify(`${item.brand}-${item.line}-${index + 1}`);
+  createVariantCopies(audioVariants, (item, index, batch, batchIndex) => {
+    const slug = slugify(`${item.brand}-${item.line}-${batch.label}-${index + 1}`);
     return {
-      title: `${item.brand} ${item.line} Wireless Earbuds`,
-      description: `Dummy audio product for UI testing with ENC calling support and ${item.battery}.`,
+      title: `${item.brand} ${item.line} ${batch.label} Wireless Earbuds`,
+      description: `Dummy audio product for UI testing with ENC calling support and ${item.battery}. ${batch.label} edition gives search more varied phrases to match.`,
       category: "Audio",
-      price: item.price,
+      price: item.price + Math.round(batch.priceDelta / 4),
       affiliateLink: buildAffiliateLink(slug),
-      images: [buildImage(`audio-${index + 1}`)],
-      features: [item.battery, "Bluetooth 5.3", "Touch controls", "Instant pairing"],
+      images: [buildImage(`audio-${index + 1}-${batchIndex + 1}`)],
+      features: [item.battery, "Bluetooth 5.3", "Touch controls", "Instant pairing", `${batch.label} variant`],
       pros: ["Affordable audio upgrade", "Compact charging case", "Good for commuting"],
       cons: ["Average microphone in noisy spaces", "No wireless charging"],
-      rating: item.rating,
+      rating: clampRating(item.rating + batch.ratingDelta),
     };
   });
 
 const createAccessoryProducts = () =>
-  accessoryVariants.map((item, index) => {
-    const slug = slugify(`${item.brand}-${item.line}-${index + 1}`);
+  createVariantCopies(accessoryVariants, (item, index, batch, batchIndex) => {
+    const slug = slugify(`${item.brand}-${item.line}-${batch.label}-${index + 1}`);
     return {
-      title: `${item.brand} ${item.line}`,
-      description: `Dummy accessory product used to test category browsing and product cards. Includes ${item.feature}.`,
+      title: `${item.brand} ${item.line} ${batch.label}`,
+      description: `Dummy accessory product used to test category browsing and product cards. Includes ${item.feature}. ${batch.label} edition helps build a larger browsing dataset.`,
       category: item.category,
-      price: item.price,
+      price: item.price + Math.round(batch.priceDelta / 5),
       affiliateLink: buildAffiliateLink(slug),
-      images: [buildImage(`accessory-${index + 1}`)],
-      features: [item.feature, "Budget-friendly", "Easy to add to student setup"],
+      images: [buildImage(`accessory-${index + 1}-${batchIndex + 1}`)],
+      features: [item.feature, "Budget-friendly", "Easy to add to student setup", `${batch.label} version`],
       pros: ["Useful everyday accessory", "Compact and practical", "Good entry pricing"],
       cons: ["Basic packaging", "Limited premium materials"],
-      rating: item.rating,
+      rating: clampRating(item.rating + batch.ratingDelta),
     };
   });
 

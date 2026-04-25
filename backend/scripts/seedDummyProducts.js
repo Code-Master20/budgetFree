@@ -12,6 +12,29 @@ const DUMMY_BATCHES = [
   { label: "Plus", priceDelta: 350, ratingDelta: 0.1 },
   { label: "Max", priceDelta: 700, ratingDelta: 0.2 },
 ];
+const LAPTOP_USE_CASES = [
+  {
+    label: "Students",
+    description:
+      "Built for classes, notes, browsing, assignments, and everyday student work.",
+    feature: "Student-friendly workflow",
+    pro: "Helpful for study sessions and online classes",
+  },
+  {
+    label: "Coding",
+    description:
+      "Suitable for VS Code, browser tabs, terminal work, Python practice, and lightweight web development.",
+    feature: "Coding-ready laptop setup",
+    pro: "Comfortable for coding practice and daily development tasks",
+  },
+  {
+    label: "Gaming",
+    description:
+      "Aimed at light gaming, esports titles, cloud gaming, and casual play after work or class.",
+    feature: "Gaming-focused laptop profile",
+    pro: "Handles entry-level gaming and casual entertainment better than a basic office laptop",
+  },
+];
 
 const laptopVariants = [
   {
@@ -441,13 +464,17 @@ const clampRating = (rating) =>
 
 const createLaptopProducts = () =>
   createVariantCopies(laptopVariants, (item, index, batch, batchIndex) => {
+    const useCase = LAPTOP_USE_CASES[(index + batchIndex) % LAPTOP_USE_CASES.length];
     const slug = slugify(
-      `${item.brand}-${item.line}-${item.processor}-${batch.label}-${index + 1}`,
+      `${item.brand}-${item.line}-${item.processor}-${useCase.label}-${batch.label}-${index + 1}`,
     );
     return {
-      title: `${item.brand} ${item.line} ${batch.label} ${item.processor} Laptop`,
-      description: `Dummy test product for student workflows. Includes ${item.ram}, ${item.storage}, and a ${item.screen} display for online classes, browsing, documents, and assignments. ${batch.label} edition adds more variety for search and filter testing.`,
-      category: index % 3 === 0 ? "Student Laptops" : "Laptops",
+      title: `${item.brand} ${item.line} ${batch.label} ${item.processor} Laptop for ${useCase.label}`,
+      description: `Dummy laptop test product. Includes ${item.ram}, ${item.storage}, and a ${item.screen} display. ${useCase.description} ${batch.label} edition adds more variety for search and filter testing.`,
+      category:
+        useCase.label === "Students" && index % 2 === 0
+          ? "Student Laptops"
+          : "Laptops",
       price: item.price + batch.priceDelta,
       affiliateLink: buildAffiliateLink(slug),
       images: [buildImage(`student-laptop-${index + 1}-${batchIndex + 1}`)],
@@ -458,14 +485,17 @@ const createLaptopProducts = () =>
         item.screen,
         "Wi-Fi and Bluetooth support",
         `${batch.label} configuration`,
+        useCase.feature,
       ],
       pros: [
-        "Budget-friendly for student use",
-        "Suitable for web browsing and classes",
+        useCase.pro,
+        "Suitable for web browsing and daily use",
         "Portable for daily carry",
       ],
       cons: [
-        "Not designed for heavy gaming",
+        useCase.label === "Gaming"
+          ? "Still entry-level for modern AAA games"
+          : "Not designed for heavy AAA gaming",
         "Basic integrated graphics",
       ],
       rating: clampRating(item.rating + batch.ratingDelta),

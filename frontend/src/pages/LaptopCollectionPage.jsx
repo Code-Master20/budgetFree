@@ -1,10 +1,17 @@
 import { motion as Motion } from "framer-motion";
-import LaptopDropdown from "../components/LaptopDropdown";
 import PageTransition from "../components/PageTransition";
 import ProductCatalog from "../components/ProductCatalog";
 import SiteChrome from "../components/SiteChrome";
 
-export default function Products() {
+export default function LaptopCollectionPage({
+  eyebrow,
+  title,
+  subtitle,
+  requestParams,
+  callout,
+  emptyStateTitle,
+  emptyStateCopy,
+}) {
   return (
     <PageTransition className="page-wrap">
       <SiteChrome>
@@ -17,23 +24,30 @@ export default function Products() {
           >
             <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
               <div className="max-w-3xl">
-                <span className="eyebrow">Products</span>
+                <span className="eyebrow">{eyebrow}</span>
                 <h1 className="mt-3 text-3xl font-semibold sm:text-5xl">
-                  Compare products before you buy.
+                  {title}
                 </h1>
-                <p className="section-copy mt-4 max-w-2xl">
-                  Search by name, filter by category, and jump straight into the
-                  laptop collections you actually want to test.
-                </p>
+                <p className="section-copy mt-4 max-w-2xl">{subtitle}</p>
               </div>
 
-              <div className="flex flex-wrap items-center gap-3">
-                <LaptopDropdown />
-              </div>
+              {callout ? (
+                <div className="glass-panel-strong rounded-[24px] px-5 py-4 text-sm text-slate-600 lg:max-w-sm">
+                  {callout}
+                </div>
+              ) : null}
             </div>
           </Motion.header>
 
-          <ProductCatalog />
+          <ProductCatalog
+            requestParams={requestParams}
+            eyebrow={eyebrow}
+            title={title}
+            subtitle={subtitle}
+            showCategoryFilters={false}
+            emptyStateTitle={emptyStateTitle}
+            emptyStateCopy={emptyStateCopy}
+          />
         </div>
       </SiteChrome>
     </PageTransition>

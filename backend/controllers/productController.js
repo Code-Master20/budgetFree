@@ -2,7 +2,7 @@ const Product = require("../models/Product");
 const { fetchAmazonProduct } = require("../services/amazonProductImportService");
 
 const DEFAULT_PAGE_SIZE = 10;
-const MAX_PAGE_SIZE = 100;
+const MAX_PAGE_SIZE = 300;
 const SEARCHABLE_FIELDS = [
   "title",
   "description",

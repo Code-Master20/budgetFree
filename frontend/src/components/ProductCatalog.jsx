@@ -78,12 +78,15 @@ function extractSearchTerms(search) {
 
 export default function ProductCatalog({
   endpoint = "/products",
+  requestParams = {},
   title = "Browse and compare products",
   subtitle = "Filter by category, search by name, and compare price and rating before opening a product page.",
   eyebrow = "Products",
   showCategoryFilters = true,
   emptyStateTitle = "Nothing matches yet",
   emptyStateCopy = "Try another keyword or category to find more products.",
+  staticBadge = "Focused picks",
+  fetchLimit = 300,
 }) {
   const dispatch = useDispatch();
   const [search, setSearch] = useState("");
@@ -98,19 +101,23 @@ export default function ProductCatalog({
   const { user } = useSelector((state) => state.auth);
   const normalizedSearch = deferredSearch.trim();
   const searchTerms = extractSearchTerms(normalizedSearch);
+  const requestParamsKey = JSON.stringify(requestParams);
 
   useEffect(() => {
     dispatch(
       fetchProducts({
         endpoint,
-        params: { limit: 100 },
+        params: {
+          limit: fetchLimit,
+          ...requestParams,
+        },
       }),
     );
-  }, [dispatch, endpoint]);
+  }, [dispatch, endpoint, fetchLimit, requestParamsKey]);
 
   useEffect(() => {
     setActiveCategory(showCategoryFilters ? "All" : null);
-  }, [showCategoryFilters, endpoint]);
+  }, [showCategoryFilters, endpoint, requestParamsKey]);
 
   useEffect(() => {
     if (!user) {
@@ -231,7 +238,7 @@ export default function ProductCatalog({
             </div>
           ) : (
             <div className="glass-panel-strong rounded-full px-4 py-2 text-xs font-semibold uppercase tracking-[0.24em] text-slate-600">
-              Student laptop picks
+              {staticBadge}
             </div>
           )}
 

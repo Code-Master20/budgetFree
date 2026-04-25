@@ -1,6 +1,37 @@
 const Product = require("../models/Product");
 const { fetchAmazonProduct } = require("../services/amazonProductImportService");
 
+const DEFAULT_PAGE_SIZE = 10;
+
+const buildSearchQuery = (search) => {
+  if (!search) {
+    return null;
+  }
+
+  return { $regex: search, $options: "i" };
+};
+
+const buildPaginatedResponse = async ({
+  res,
+  query,
+  page = 1,
+  limit = DEFAULT_PAGE_SIZE,
+  sort = { createdAt: -1 },
+}) => {
+  const normalizedPage = Math.max(Number(page) || 1, 1);
+  const skip = (normalizedPage - 1) * limit;
+
+  const products = await Product.find(query).skip(skip).limit(limit).sort(sort);
+  const total = await Product.countDocuments(query);
+
+  return res.json({
+    products,
+    total,
+    page: normalizedPage,
+    pages: Math.ceil(total / limit),
+  });
+};
+
 // @desc Get all products (with filters)
 exports.getProducts = async (req, res) => {
   try {
@@ -17,28 +48,57 @@ exports.getProducts = async (req, res) => {
       if (maxPrice) query.price.$lte = Number(maxPrice);
     }
 
-    if (search) {
-      query.title = { $regex: search, $options: "i" };
+    const searchQuery = buildSearchQuery(search);
+    if (searchQuery) {
+      query.title = searchQuery;
     }
 
-    const limit = 10;
-    const skip = (page - 1) * limit;
-
-    const products = await Product.find(query)
-      .skip(skip)
-      .limit(limit)
-      .sort({ createdAt: -1 });
-
-    const total = await Product.countDocuments(query);
-
-    res.json({
-      products,
-      total,
+    return buildPaginatedResponse({
+      res,
+      query,
       page,
-      pages: Math.ceil(total / limit),
+      sort: { createdAt: -1 },
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc Get best student laptops between Rs 16,000 and Rs 25,000
+exports.getBestStudentLaptopsUnder16000To25000 = async (req, res) => {
+  try {
+    const { search, page = 1 } = req.query;
+    const searchQuery = buildSearchQuery(search);
+
+    const query = {
+      price: { $gte: 16000, $lte: 25000 },
+      $or: [
+        { category: { $regex: "laptop", $options: "i" } },
+        { title: { $regex: "laptop", $options: "i" } },
+        { description: { $regex: "laptop", $options: "i" } },
+      ],
+    };
+
+    if (searchQuery) {
+      query.$and = [
+        {
+          $or: [
+            { title: searchQuery },
+            { description: searchQuery },
+            { category: searchQuery },
+          ],
+        },
+      ];
+    }
+
+    return buildPaginatedResponse({
+      res,
+      query,
+      page,
+      sort: { rating: -1, price: 1, createdAt: -1 },
+    });
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
   }
 };
 

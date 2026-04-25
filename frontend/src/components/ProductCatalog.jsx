@@ -37,13 +37,19 @@ function ProductSkeleton({ index }) {
 }
 
 export default function ProductCatalog({
+  endpoint = "/products",
   title = "Browse and compare products",
   subtitle = "Filter by category, search by name, and compare price and rating before opening a product page.",
   eyebrow = "Products",
+  showCategoryFilters = true,
+  emptyStateTitle = "Nothing matches yet",
+  emptyStateCopy = "Try another keyword or category to find more products.",
 }) {
   const dispatch = useDispatch();
   const [search, setSearch] = useState("");
-  const [activeCategory, setActiveCategory] = useState("All");
+  const [activeCategory, setActiveCategory] = useState(
+    showCategoryFilters ? "All" : null,
+  );
   const [sortBy, setSortBy] = useState("featured");
   const deferredSearch = useDeferredValue(search);
   const lastTrackedSearch = useRef("");
@@ -52,8 +58,12 @@ export default function ProductCatalog({
   const { user } = useSelector((state) => state.auth);
 
   useEffect(() => {
-    dispatch(fetchProducts());
-  }, [dispatch]);
+    dispatch(fetchProducts({ endpoint }));
+  }, [dispatch, endpoint]);
+
+  useEffect(() => {
+    setActiveCategory(showCategoryFilters ? "All" : null);
+  }, [showCategoryFilters, endpoint]);
 
   useEffect(() => {
     if (!user) {
@@ -92,7 +102,9 @@ export default function ProductCatalog({
   const filteredProducts = products
     .filter((product) => {
       const matchesCategory =
-        activeCategory === "All" || product.category === activeCategory;
+        !showCategoryFilters ||
+        activeCategory === "All" ||
+        product.category === activeCategory;
       const haystack = `${product.title} ${product.description || ""}`.toLowerCase();
       const matchesSearch = haystack.includes(
         deferredSearch.trim().toLowerCase(),
@@ -140,26 +152,32 @@ export default function ProductCatalog({
 
       <div className="mt-5 flex flex-col gap-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="flex flex-wrap gap-2">
-            {categories.map((category) => {
-              const isActive = category === activeCategory;
+          {showCategoryFilters ? (
+            <div className="flex flex-wrap gap-2">
+              {categories.map((category) => {
+                const isActive = category === activeCategory;
 
-              return (
-                <button
-                  key={category}
-                  type="button"
-                  onClick={() => setActiveCategory(category)}
-                  className={
-                    isActive
-                      ? "primary-button px-4 py-2 text-xs"
-                      : "secondary-button px-4 py-2 text-xs"
-                  }
-                >
-                  {category}
-                </button>
-              );
-            })}
-          </div>
+                return (
+                  <button
+                    key={category}
+                    type="button"
+                    onClick={() => setActiveCategory(category)}
+                    className={
+                      isActive
+                        ? "primary-button px-4 py-2 text-xs"
+                        : "secondary-button px-4 py-2 text-xs"
+                    }
+                  >
+                    {category}
+                  </button>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="glass-panel-strong rounded-full px-4 py-2 text-xs font-semibold uppercase tracking-[0.24em] text-slate-600">
+              Student laptop picks
+            </div>
+          )}
 
           <div className="flex flex-wrap items-center gap-3">
             <label className="text-sm text-slate-600">
@@ -176,11 +194,14 @@ export default function ProductCatalog({
               </select>
             </label>
 
-            {(activeCategory !== "All" || deferredSearch) && (
+            {((showCategoryFilters && activeCategory !== "All") ||
+              deferredSearch) && (
               <button
                 type="button"
                 onClick={() => {
-                  setActiveCategory("All");
+                  if (showCategoryFilters) {
+                    setActiveCategory("All");
+                  }
                   setSearch("");
                 }}
                 className="secondary-button px-4 py-2 text-xs"
@@ -286,10 +307,8 @@ export default function ProductCatalog({
 
       {!loading && filteredProducts.length === 0 ? (
         <div className="glass-panel-strong mt-8 rounded-[28px] px-6 py-8 text-center">
-          <h3 className="text-2xl font-semibold">Nothing matches yet</h3>
-          <p className="section-copy mt-3">
-            Try another keyword or category to find more products.
-          </p>
+          <h3 className="text-2xl font-semibold">{emptyStateTitle}</h3>
+          <p className="section-copy mt-3">{emptyStateCopy}</p>
         </div>
       ) : null}
     </section>

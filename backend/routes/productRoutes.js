@@ -1,6 +1,7 @@
 const express = require("express");
 const {
   getProducts,
+  getBestStudentLaptopsUnder16000To25000,
   getProductById,
   createProduct,
   importAmazonProduct,
@@ -16,6 +17,10 @@ const router = express.Router();
 
 // Public
 router.get("/", getProducts);
+router.get(
+  "/best-student-laptops-under-16000-25000",
+  getBestStudentLaptopsUnder16000To25000,
+);
 router.get("/:id", getProductById);
 
 // Admin

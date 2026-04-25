@@ -6,6 +6,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import { ThemeProvider } from "./components/ThemeProvider";
 import { fetchUser } from "./redux/authSlice";
 import AdminPanel from "./pages/AdminPanel";
+import BestStudentLaptops from "./pages/BestStudentLaptops";
 import Dashboard from "./pages/Dashboard";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
@@ -33,6 +34,10 @@ function AppRoutes() {
       <Routes location={location} key={location.pathname}>
         <Route path="/" element={<Home />} />
         <Route path="/products" element={<Products />} />
+        <Route
+          path="/products/best-student-laptops-under-16000-25000"
+          element={<BestStudentLaptops />}
+        />
         <Route path="/participants" element={<Participants />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />

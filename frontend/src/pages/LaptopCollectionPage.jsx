@@ -2,6 +2,7 @@ import { motion as Motion } from "framer-motion";
 import PageTransition from "../components/PageTransition";
 import ProductCatalog from "../components/ProductCatalog";
 import SiteChrome from "../components/SiteChrome";
+import StorefrontCategoryBar from "../components/StorefrontCategoryBar";
 
 export default function LaptopCollectionPage({
   eyebrow,
@@ -45,6 +46,7 @@ export default function LaptopCollectionPage({
             title={title}
             subtitle={subtitle}
             showCategoryFilters={false}
+            leadingControl={<StorefrontCategoryBar />}
             staticBadge="Laptop picks"
             emptyStateTitle={emptyStateTitle}
             emptyStateCopy={emptyStateCopy}

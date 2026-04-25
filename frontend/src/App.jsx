@@ -100,6 +100,103 @@ function AppRoutes() {
           }
         />
         <Route
+          path="/products/best-computer-eye-glasses"
+          element={
+            <LaptopCollectionPage
+              eyebrow="Computer eyewear picks"
+              title="Best computer eye glasses"
+              subtitle="Browse eye-tie products geared toward screen-heavy work, reading sessions, office setups, and day-long computer use."
+              requestParams={{
+                category: "Eye-tie",
+                search: "computer glasses",
+                limit: 300,
+              }}
+              callout="This collection narrows the eye-tie catalog toward computer and desk-use language so it feels closer to a real screen-care shortlist."
+              emptyStateTitle="No computer eye glasses found yet"
+              emptyStateCopy="Seed or add eye-tie products that mention computer use to populate this collection."
+              staticBadge="Eyewear picks"
+            />
+          }
+        />
+        <Route
+          path="/products/best-blue-light-glasses"
+          element={
+            <LaptopCollectionPage
+              eyebrow="Blue light eyewear picks"
+              title="Best blue light glasses"
+              subtitle="Compare blue-light-focused eye-tie options for laptop work, classes, browsing, and extended evening screen time."
+              requestParams={{
+                category: "Eye-tie",
+                search: "blue light glasses",
+                limit: 300,
+              }}
+              callout="This route keeps the list eyewear-first while looking for blue-light wording in the product catalog."
+              emptyStateTitle="No blue light glasses found yet"
+              emptyStateCopy="Seed or add eye-tie products that mention blue light filtering to populate this collection."
+              staticBadge="Eyewear picks"
+            />
+          }
+        />
+        <Route
+          path="/products/best-uv-protection-glasses-under-400"
+          element={
+            <LaptopCollectionPage
+              eyebrow="Budget UV eyewear picks"
+              title="Best UV protection glasses under Rs 400"
+              subtitle="Browse affordable eye-tie products that stay under Rs 400 while prioritizing outdoor use and UV-oriented descriptions."
+              requestParams={{
+                category: "Eye-tie",
+                maxPrice: 400,
+                search: "uv glasses",
+                limit: 300,
+              }}
+              callout="This route mixes a strict budget cap with UV-focused search terms so cheaper sun-ready picks are easier to test."
+              emptyStateTitle="No UV protection glasses under Rs 400 found yet"
+              emptyStateCopy="Seed or add eye-tie products under Rs 400 with UV-focused descriptions to populate this collection."
+              staticBadge="Eyewear picks"
+            />
+          }
+        />
+        <Route
+          path="/products/best-fashion-glasses-under-500"
+          element={
+            <LaptopCollectionPage
+              eyebrow="Budget fashion eyewear picks"
+              title="Best fashion glasses under Rs 500"
+              subtitle="Browse stylish eye-tie options under Rs 500 for budget-conscious fashion, casual looks, and everyday wear."
+              requestParams={{
+                category: "Eye-tie",
+                maxPrice: 500,
+                search: "fashion glasses",
+                limit: 300,
+              }}
+              callout="This route keeps the budget tight while surfacing more style-oriented eyewear matches."
+              emptyStateTitle="No fashion glasses under Rs 500 found yet"
+              emptyStateCopy="Seed or add fashion-forward eye-tie products under Rs 500 to populate this collection."
+              staticBadge="Eyewear picks"
+            />
+          }
+        />
+        <Route
+          path="/products/best-anti-glare-glasses"
+          element={
+            <LaptopCollectionPage
+              eyebrow="Anti glare eyewear picks"
+              title="Best anti glare glasses"
+              subtitle="Compare anti-glare eye-tie picks for reducing reflections during work, reading, commuting, and bright indoor lighting."
+              requestParams={{
+                category: "Eye-tie",
+                search: "anti glare glasses",
+                limit: 300,
+              }}
+              callout="This collection focuses on anti-glare language so reflection-reduction eyewear is easier to browse in one place."
+              emptyStateTitle="No anti glare glasses found yet"
+              emptyStateCopy="Seed or add anti-glare eye-tie products to populate this collection."
+              staticBadge="Eyewear picks"
+            />
+          }
+        />
+        <Route
           path="/products/best-gaming-mobiles"
           element={
             <LaptopCollectionPage

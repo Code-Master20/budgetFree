@@ -21,6 +21,7 @@ const productSchema = new mongoose.Schema(
     },
 
     images: [String],
+    video: String,
 
     features: [String],
     pros: [String],

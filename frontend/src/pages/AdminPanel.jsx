@@ -81,6 +81,7 @@ const initialProductForm = {
   price: "",
   affiliateLink: "",
   images: "",
+  video: "",
   features: "",
   pros: "",
   cons: "",
@@ -125,6 +126,24 @@ function releaseLocalImageEntries(entries) {
   });
 }
 
+function createLocalVideoEntry(file) {
+  if (!file?.type?.startsWith("video/")) {
+    return null;
+  }
+
+  return {
+    id: `${file.name}-${file.lastModified}-${file.size}`,
+    file,
+    previewUrl: URL.createObjectURL(file),
+  };
+}
+
+function releaseLocalVideoEntry(entry) {
+  if (entry?.previewUrl) {
+    URL.revokeObjectURL(entry.previewUrl);
+  }
+}
+
 export default function AdminPanel() {
   const dispatch = useDispatch();
   const { user } = useSelector((state) => state.auth);
@@ -139,6 +158,7 @@ export default function AdminPanel() {
   const [allReviews, setAllReviews] = useState([]);
   const [productForm, setProductForm] = useState(initialProductForm);
   const [productImageFiles, setProductImageFiles] = useState([]);
+  const [productVideoFile, setProductVideoFile] = useState(null);
   const [amazonImportUrl, setAmazonImportUrl] = useState("");
   const [editingProductId, setEditingProductId] = useState(null);
   const [creatingOrUpdatingProduct, setCreatingOrUpdatingProduct] =
@@ -150,6 +170,7 @@ export default function AdminPanel() {
   const [sendingRewardId, setSendingRewardId] = useState("");
   const [giftCardLinks, setGiftCardLinks] = useState({});
   const productImageFilesRef = useRef([]);
+  const productVideoFileRef = useRef(null);
   const hasAdminOtpVerification = Boolean(user?.otpVerification?.adminAccess);
 
   const handleAdminOtpRequired = async () => {
@@ -217,9 +238,14 @@ export default function AdminPanel() {
     productImageFilesRef.current = productImageFiles;
   }, [productImageFiles]);
 
+  useEffect(() => {
+    productVideoFileRef.current = productVideoFile;
+  }, [productVideoFile]);
+
   useEffect(
     () => () => {
       releaseLocalImageEntries(productImageFilesRef.current);
+      releaseLocalVideoEntry(productVideoFileRef.current);
     },
     [],
   );
@@ -295,6 +321,13 @@ export default function AdminPanel() {
     });
   };
 
+  const clearProductVideoFile = () => {
+    setProductVideoFile((current) => {
+      releaseLocalVideoEntry(current);
+      return null;
+    });
+  };
+
   const appendProductImageFiles = (fileList) => {
     const nextEntries = createLocalImageEntries(fileList);
 
@@ -346,8 +379,36 @@ export default function AdminPanel() {
     });
   };
 
+  const handleProductVideoSelection = (event) => {
+    const nextFile = event.target.files?.[0];
+    event.target.value = "";
+
+    if (!nextFile) {
+      return;
+    }
+
+    if (!nextFile.type?.startsWith("video/")) {
+      setError("Please choose a valid video file.");
+      return;
+    }
+
+    setError("");
+    const nextEntry = createLocalVideoEntry(nextFile);
+
+    if (!nextEntry) {
+      setError("Please choose a valid video file.");
+      return;
+    }
+
+    setProductVideoFile((current) => {
+      releaseLocalVideoEntry(current);
+      return nextEntry;
+    });
+  };
+
   const resetProductForm = () => {
     clearProductImageFiles();
+    clearProductVideoFile();
     setProductForm(initialProductForm);
     setEditingProductId(null);
   };
@@ -372,6 +433,7 @@ export default function AdminPanel() {
       payload.append("price", String(Number(productForm.price || 0)));
       payload.append("affiliateLink", productForm.affiliateLink.trim());
       payload.append("images", productForm.images);
+      payload.append("video", productForm.video.trim());
       payload.append("features", productForm.features);
       payload.append("pros", productForm.pros);
       payload.append("cons", productForm.cons);
@@ -379,6 +441,9 @@ export default function AdminPanel() {
       productImageFiles.forEach(({ file }) => {
         payload.append("uploadedImages", file);
       });
+      if (productVideoFile?.file) {
+        payload.append("uploadedVideo", productVideoFile.file);
+      }
 
       if (editingProductId) {
         await API.put(`/products/${editingProductId}`, payload);
@@ -417,6 +482,7 @@ export default function AdminPanel() {
 
       if (importedProduct) {
         clearProductImageFiles();
+        clearProductVideoFile();
         setEditingProductId(importedProduct._id || null);
         setProductForm({
           title: importedProduct.title || "",
@@ -425,6 +491,7 @@ export default function AdminPanel() {
           price: importedProduct.price ?? "",
           affiliateLink: importedProduct.affiliateLink || "",
           images: listToMultiline(importedProduct.images),
+          video: importedProduct.video || "",
           features: listToMultiline(importedProduct.features),
           pros: listToMultiline(importedProduct.pros),
           cons: listToMultiline(importedProduct.cons),
@@ -462,6 +529,7 @@ export default function AdminPanel() {
       const product = response.data;
 
       clearProductImageFiles();
+      clearProductVideoFile();
       setEditingProductId(productId);
       setProductForm({
         title: product.title || "",
@@ -470,6 +538,7 @@ export default function AdminPanel() {
         price: product.price ?? "",
         affiliateLink: product.affiliateLink || "",
         images: listToMultiline(product.images),
+        video: product.video || "",
         features: listToMultiline(product.features),
         pros: listToMultiline(product.pros),
         cons: listToMultiline(product.cons),
@@ -993,6 +1062,84 @@ export default function AdminPanel() {
               <div className="grid gap-4 lg:grid-cols-2">
                 <label className="block">
                   <span className="mb-2 block text-sm font-medium text-slate-600">
+                    Product video URL
+                  </span>
+                  <input
+                    name="video"
+                    value={productForm.video}
+                    onChange={handleProductFormChange}
+                    className="field"
+                    placeholder="https://.../product-demo.mp4"
+                  />
+                  <p className="mt-2 text-xs text-slate-500">
+                    Add one hosted video link if you already have the file online.
+                  </p>
+                </label>
+
+                <div className="block">
+                  <span className="mb-2 block text-sm font-medium text-slate-600">
+                    Upload product video
+                  </span>
+                  <div className="space-y-3 rounded-[24px] border border-dashed border-slate-300 bg-white/72 p-4">
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+                      <p className="text-sm leading-6 text-slate-500">
+                        Attach one video per product. If you upload a file here,
+                        it will be used instead of the video URL above.
+                      </p>
+                      <label className="secondary-button cursor-pointer">
+                        <span>{productVideoFile ? "Replace video" : "Select video"}</span>
+                        <input
+                          type="file"
+                          accept="video/*"
+                          onChange={handleProductVideoSelection}
+                          className="hidden"
+                        />
+                      </label>
+                    </div>
+
+                    {productVideoFile ? (
+                      <div className="rounded-[20px] border border-slate-200 bg-slate-50 p-3">
+                        <video
+                          src={productVideoFile.previewUrl}
+                          controls
+                          className="h-48 w-full rounded-[16px] bg-slate-950 object-cover"
+                        />
+                        <div className="mt-3 flex items-start justify-between gap-3">
+                          <p className="min-w-0 flex-1 truncate text-xs text-slate-500">
+                            {productVideoFile.file.name}
+                          </p>
+                          <button
+                            type="button"
+                            onClick={clearProductVideoFile}
+                            className="text-xs font-medium text-rose-600 transition hover:text-rose-700"
+                          >
+                            Remove
+                          </button>
+                        </div>
+                      </div>
+                    ) : productForm.video ? (
+                      <div className="rounded-[20px] border border-slate-200 bg-slate-50 p-3">
+                        <video
+                          src={productForm.video}
+                          controls
+                          className="h-48 w-full rounded-[16px] bg-slate-950 object-cover"
+                        />
+                        <p className="mt-3 text-xs text-slate-500">
+                          Using the saved video URL for this product.
+                        </p>
+                      </div>
+                    ) : (
+                      <p className="text-sm text-slate-400">
+                        No product video selected yet.
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid gap-4 lg:grid-cols-2">
+                <label className="block">
+                  <span className="mb-2 block text-sm font-medium text-slate-600">
                     Features
                   </span>
                   <textarea
@@ -1089,6 +1236,7 @@ export default function AdminPanel() {
                         <span>Price: {formatCurrency(product.price)}</span>
                         <span>Rating: {Number(product.rating || 0).toFixed(1)}</span>
                         <span>Added: {formatDate(product.createdAt)}</span>
+                        {product.video ? <span>Video attached</span> : null}
                       </div>
                       <div className="mt-4 flex flex-wrap gap-3">
                         <button

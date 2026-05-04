@@ -15,7 +15,12 @@ const { requireOtpVerification } = require("../middleware/otpMiddleware");
 const { OTP_PURPOSES } = require("../utils/otp");
 
 const router = express.Router();
-const productImageUpload = upload.createUpload({ folder: "products" });
+const productMediaUpload = upload.createUpload({
+  folder: "products",
+  maxFileSizeMb: 50,
+  resourceType: "auto",
+  allowedMimePrefixes: ["image/", "video/"],
+});
 
 // Public
 router.get("/", getProducts);
@@ -31,7 +36,10 @@ router.post(
   protect,
   admin,
   requireOtpVerification(OTP_PURPOSES.ADMIN_ACCESS),
-  productImageUpload.array("uploadedImages", 4),
+  productMediaUpload.fields([
+    { name: "uploadedImages", maxCount: 4 },
+    { name: "uploadedVideo", maxCount: 1 },
+  ]),
   createProduct,
 );
 router.post(
@@ -46,7 +54,10 @@ router.put(
   protect,
   admin,
   requireOtpVerification(OTP_PURPOSES.ADMIN_ACCESS),
-  productImageUpload.array("uploadedImages", 4),
+  productMediaUpload.fields([
+    { name: "uploadedImages", maxCount: 4 },
+    { name: "uploadedVideo", maxCount: 1 },
+  ]),
   updateProduct,
 );
 router.delete(

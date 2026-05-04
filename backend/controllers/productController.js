@@ -67,10 +67,25 @@ const parseListField = (value) => {
     .filter(Boolean);
 };
 
+const getUploadedFiles = (files, fieldName) => {
+  if (Array.isArray(files)) {
+    return fieldName ? [] : files;
+  }
+
+  if (!files || typeof files !== "object") {
+    return [];
+  }
+
+  return Array.isArray(files[fieldName]) ? files[fieldName] : [];
+};
+
 const buildProductPayload = (req) => {
-  const uploadedImages = Array.isArray(req.files)
-    ? req.files.map((file) => file.path).filter(Boolean)
-    : [];
+  const uploadedImages = getUploadedFiles(req.files, "uploadedImages")
+    .map((file) => file.path)
+    .filter(Boolean);
+  const uploadedVideo = getUploadedFiles(req.files, "uploadedVideo")
+    .map((file) => file.path)
+    .find(Boolean);
   const images = [...parseListField(req.body.images), ...uploadedImages];
 
   if (images.length > 4) {
@@ -84,6 +99,7 @@ const buildProductPayload = (req) => {
     price: Number(req.body.price || 0),
     affiliateLink: normalizeString(req.body.affiliateLink),
     images,
+    video: uploadedVideo || normalizeString(req.body.video),
     features: parseListField(req.body.features),
     pros: parseListField(req.body.pros),
     cons: parseListField(req.body.cons),

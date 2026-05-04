@@ -1,5 +1,5 @@
 import { motion as Motion } from "framer-motion";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useSelector } from "react-redux";
 import { Link, useParams } from "react-router-dom";
 import API from "../api";
@@ -32,12 +32,59 @@ function DetailGroup({ title, items, toneClass }) {
   );
 }
 
+function PlayButtonIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" className="h-6 w-6">
+      <path d="M8 6.82v10.36c0 .79.87 1.27 1.54.84l8.14-5.18a1 1 0 0 0 0-1.68L9.54 5.98A1 1 0 0 0 8 6.82Z" />
+    </svg>
+  );
+}
+
 export default function ProductDetails() {
   const { id } = useParams();
   const { user } = useSelector((state) => state.auth);
   const [product, setProduct] = useState(null);
   const [status, setStatus] = useState("loading");
   const [error, setError] = useState("");
+  const [activeMediaIndex, setActiveMediaIndex] = useState(0);
+  const [isVideoPlaying, setIsVideoPlaying] = useState(false);
+  const videoRef = useRef(null);
+  const touchStartXRef = useRef(null);
+
+  const mediaItems = useMemo(() => {
+    if (!product) {
+      return [];
+    }
+
+    const items = (product.images || []).filter(Boolean).map((src, index) => ({
+      id: `image-${index}-${src}`,
+      type: "image",
+      src,
+      label: `Image ${index + 1}`,
+    }));
+
+    if (product.video) {
+      items.push({
+        id: `video-${product.video}`,
+        type: "video",
+        src: product.video,
+        label: "Video",
+      });
+    }
+
+    return items;
+  }, [product]);
+
+  const activeMedia = mediaItems[activeMediaIndex] || null;
+
+  const resetVideoPlayback = () => {
+    if (videoRef.current) {
+      videoRef.current.pause();
+      videoRef.current.currentTime = 0;
+    }
+
+    setIsVideoPlaying(false);
+  };
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -45,6 +92,8 @@ export default function ProductDetails() {
         setStatus("loading");
         setError("");
         const res = await API.get(`/products/${id}`);
+        resetVideoPlayback();
+        setActiveMediaIndex(0);
         setProduct(res.data);
         setStatus("ready");
       } catch (fetchError) {
@@ -63,6 +112,64 @@ export default function ProductDetails() {
 
     API.post("/dashboard/visits", { productId: id }).catch(() => {});
   }, [id, status, user]);
+
+  const showPreviousMedia = () => {
+    if (mediaItems.length <= 1) {
+      return;
+    }
+
+    resetVideoPlayback();
+    setActiveMediaIndex((current) =>
+      current === 0 ? mediaItems.length - 1 : current - 1,
+    );
+  };
+
+  const showNextMedia = () => {
+    if (mediaItems.length <= 1) {
+      return;
+    }
+
+    resetVideoPlayback();
+    setActiveMediaIndex((current) => (current + 1) % mediaItems.length);
+  };
+
+  const handleMediaTouchStart = (event) => {
+    touchStartXRef.current = event.touches?.[0]?.clientX ?? null;
+  };
+
+  const handleMediaTouchEnd = (event) => {
+    if (touchStartXRef.current === null) {
+      return;
+    }
+
+    const touchEndX = event.changedTouches?.[0]?.clientX ?? touchStartXRef.current;
+    const delta = touchStartXRef.current - touchEndX;
+    touchStartXRef.current = null;
+
+    if (Math.abs(delta) < 50) {
+      return;
+    }
+
+    if (delta > 0) {
+      showNextMedia();
+      return;
+    }
+
+    showPreviousMedia();
+  };
+
+  const handlePlayVideo = async () => {
+    if (!videoRef.current) {
+      return;
+    }
+
+    try {
+      await videoRef.current.play();
+      setIsVideoPlaying(true);
+    } catch {
+      setIsVideoPlaying(false);
+    }
+  };
 
   if (status === "loading") {
     return <LoadingScreen label="Loading product details..." />;
@@ -106,12 +213,130 @@ export default function ProductDetails() {
               transition={{ duration: 0.35 }}
               className="glass-panel overflow-hidden rounded-[34px] p-5 sm:p-6"
             >
-              {product.images?.[0] ? (
-                <img
-                  src={product.images[0]}
-                  alt={product.title}
-                  className="h-[320px] w-full rounded-[28px] object-cover sm:h-[420px]"
-                />
+              {mediaItems.length ? (
+                <div className="space-y-4">
+                  <div
+                    className="relative overflow-hidden rounded-[28px] bg-slate-950"
+                    onTouchStart={handleMediaTouchStart}
+                    onTouchEnd={handleMediaTouchEnd}
+                  >
+                    <div
+                      className="flex transition-transform duration-300 ease-out"
+                      style={{
+                        transform: `translateX(-${activeMediaIndex * 100}%)`,
+                      }}
+                    >
+                      {mediaItems.map((item) => (
+                        <div
+                          key={item.id}
+                          className="relative h-[320px] w-full shrink-0 sm:h-[420px]"
+                        >
+                          {item.type === "video" ? (
+                            <>
+                              <video
+                                ref={item.id === activeMedia?.id ? videoRef : null}
+                                src={item.src}
+                                controls
+                                playsInline
+                                preload="metadata"
+                                poster={product.images?.[0] || undefined}
+                                onPlay={() => setIsVideoPlaying(true)}
+                                onPause={() => setIsVideoPlaying(false)}
+                                onEnded={() => setIsVideoPlaying(false)}
+                                className="h-full w-full object-cover"
+                              />
+                              {item.id === activeMedia?.id && !isVideoPlaying ? (
+                                <button
+                                  type="button"
+                                  onClick={handlePlayVideo}
+                                  className="absolute left-1/2 top-1/2 flex h-16 w-16 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-white/92 text-slate-900 shadow-lg transition hover:scale-105"
+                                  aria-label="Play product video"
+                                >
+                                  <PlayButtonIcon />
+                                </button>
+                              ) : null}
+                              <div className="absolute left-4 top-4">
+                                <span className="pill bg-slate-950/70 text-white">
+                                  Product video
+                                </span>
+                              </div>
+                            </>
+                          ) : (
+                            <img
+                              src={item.src}
+                              alt={`${product.title} - ${item.label}`}
+                              className="h-full w-full object-cover"
+                            />
+                          )}
+                        </div>
+                      ))}
+                    </div>
+
+                    {mediaItems.length > 1 ? (
+                      <>
+                        <button
+                          type="button"
+                          onClick={showPreviousMedia}
+                          className="absolute left-4 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-slate-950/60 text-xl text-white backdrop-blur transition hover:bg-slate-950/80"
+                          aria-label="Show previous product media"
+                        >
+                          ‹
+                        </button>
+                        <button
+                          type="button"
+                          onClick={showNextMedia}
+                          className="absolute right-4 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-slate-950/60 text-xl text-white backdrop-blur transition hover:bg-slate-950/80"
+                          aria-label="Show next product media"
+                        >
+                          ›
+                        </button>
+                      </>
+                    ) : null}
+                  </div>
+
+                  {mediaItems.length > 1 ? (
+                    <div className="flex gap-3 overflow-x-auto pb-1">
+                      {mediaItems.map((item, index) => (
+                        <button
+                          key={item.id}
+                          type="button"
+                          onClick={() => {
+                            resetVideoPlayback();
+                            setActiveMediaIndex(index);
+                          }}
+                          className={`relative h-20 w-24 shrink-0 overflow-hidden rounded-[18px] border transition ${
+                            index === activeMediaIndex
+                              ? "border-emerald-500 shadow-[0_0_0_1px_rgba(16,185,129,0.45)]"
+                              : "border-slate-200/80"
+                          }`}
+                          aria-label={`Show ${item.label.toLowerCase()}`}
+                        >
+                          {item.type === "video" ? (
+                            <>
+                              <video
+                                src={item.src}
+                                muted
+                                playsInline
+                                preload="metadata"
+                                poster={product.images?.[0] || undefined}
+                                className="h-full w-full object-cover"
+                              />
+                              <span className="absolute inset-0 flex items-center justify-center bg-slate-950/30 text-white">
+                                <PlayButtonIcon />
+                              </span>
+                            </>
+                          ) : (
+                            <img
+                              src={item.src}
+                              alt={item.label}
+                              className="h-full w-full object-cover"
+                            />
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                  ) : null}
+                </div>
               ) : (
                 <div className="flex h-[320px] w-full items-end rounded-[28px] bg-gradient-to-br from-emerald-100 via-amber-50 to-orange-100 p-6 sm:h-[420px]">
                   <span className="pill bg-white/75 text-slate-700">

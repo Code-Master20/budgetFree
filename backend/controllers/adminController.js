@@ -37,7 +37,7 @@ exports.getDashboard = async (req, res) => {
         .limit(6)
         .lean(),
       Product.find()
-        .select("title category price rating createdAt")
+        .select("title category price rating video createdAt")
         .sort({ createdAt: -1 })
         .limit(6)
         .lean(),
